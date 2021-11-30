@@ -13,6 +13,8 @@ import io.netty.util.internal.logging.InternalLoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.avreen.common.actor.ActorState.STARTED;
+
 /**
  * The class Netty sync client.
  *
@@ -54,7 +56,7 @@ public  class NettySyncClient<M> implements IMsgProcessor<M> {
      * @return the m
      */
     public M send(M msg, long timeout) {
-        if (nettyClientBase.getState() == IActor.STARTED)
+        if (nettyClientBase.getState() != STARTED)
             nettyClientBase.start();
         Channel   senChannel =  nettyClientBase.send(msg);
         if(senChannel==null)

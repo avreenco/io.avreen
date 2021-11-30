@@ -11,6 +11,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static io.avreen.common.actor.ActorState.INIT_FAILED;
+import static io.avreen.common.actor.ActorState.START_FAILED;
+
 /**
  * The class Actor repository.
  */
@@ -150,7 +153,7 @@ public class ActorRepository implements Runnable, ActorRepositoryMXBean {
      * @param name the name
      * @return the actor base
      */
-    public <T extends ActorBase > T get(String type, String name) {
+    public <T extends ActorBase> T get(String type, String name) {
         String key = type + "." + name;
         ActorBase obj = actorMap.get(key);
         return (T) obj;
@@ -163,7 +166,7 @@ public class ActorRepository implements Runnable, ActorRepositoryMXBean {
      * @param key the key
      * @return the actor base
      */
-    public <T extends ActorBase > T get(String key) {
+    public <T extends ActorBase> T get(String key) {
         ActorBase obj = actorMap.get(key);
         return (T) obj;
     }
@@ -206,8 +209,8 @@ public class ActorRepository implements Runnable, ActorRepositoryMXBean {
                 LOGGER.info("check registered  actor's status");
             for (String key : actorMap.keySet()) {
                 ActorBase actorBase = actorMap.get(key);
-                int state = actorBase.getState();
-                if (state == IActor.INIT_FAILED || state == IActor.START_FAILED) {
+                ActorState state = actorBase.getState();
+                if (state == INIT_FAILED || state == START_FAILED) {
                     if (LOGGER.isWarnEnabled())
                         LOGGER.warn("restart actor name={}" + actorBase.getName());
                     try {

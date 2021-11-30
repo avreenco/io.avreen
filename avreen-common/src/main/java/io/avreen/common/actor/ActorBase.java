@@ -9,7 +9,8 @@ import javax.management.Notification;
 import javax.management.NotificationBroadcasterSupport;
 import java.util.Date;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
+
+import static io.avreen.common.actor.ActorState.*;
 
 
 /**
@@ -19,14 +20,7 @@ public abstract class ActorBase extends NotificationBroadcasterSupport implement
 
     private static final InternalLogger LOGGER = InternalLoggerFactory.getInstance(LoggerDomain.Name + ".common.actor.ActorBase");
 
-    /**
-     * The State string.
-     */
-//protected NotificationPublisher publisher;
-    String stateString[] = {
-            "Stopped", "Stopping", "Starting", "Started", "Start_Failed", "Stop_Failed", "Init", "Init_Failed", "Initing"
-    };
-    private AtomicInteger state = new AtomicInteger(-1);
+    private ActorState state = null;
     private String name;
     private Date createTime = null;
     private Date lastStartedTime = null;
@@ -54,7 +48,7 @@ public abstract class ActorBase extends NotificationBroadcasterSupport implement
      * @return the boolean
      */
     public boolean isBuildState() {
-        return state.get() == -1;
+        return state != null;
     }
 
     public String getName() {
@@ -168,20 +162,20 @@ public abstract class ActorBase extends NotificationBroadcasterSupport implement
 
     private synchronized boolean init() {
         ActorRepository.getInstance().register(this);
-        while (state.get() == INITING) {
+        while (state == INITING) {
             sendInProgressNotification();
             relax();
         }
-        if (state.get() == -1 || state.get() == INIT_FAILED) {
+        if (state == null || state == ActorState.INIT_FAILED) {
             try {
-                state.set(INITING);
+                state = INITING;
                 initService();
-                state.set(INIT);
+                state = (INIT);
                 createTime = new Date();
             } catch (Throwable t) {
                 if (LOGGER.isErrorEnabled())
                     LOGGER.error("start error", t);
-                state.set(INIT_FAILED);
+                state = INIT_FAILED;
                 return false;
             }
         }
@@ -201,14 +195,14 @@ public abstract class ActorBase extends NotificationBroadcasterSupport implement
                     LOGGER.warn("actor {} is not init for start. status={}", toNameType(), getStateAsString());
                 return getStateAsString();
             }
-            while (state.get() == STARTING || state.get() == STOPPING) {
+            while (state == STARTING || state == STOPPING) {
                 sendInProgressNotification();
                 if (LOGGER.isWarnEnabled())
                     LOGGER.warn("actor {} status is not suitable for start. relax and try again.status={}", toNameType(), getStateAsString());
                 relax();
             }
 
-            boolean validState = this.state.get() == INIT || this.state.get() == START_FAILED || this.state.get() == STOPPED;
+            boolean validState = this.state == INIT || this.state == START_FAILED || this.state == STOPPED;
             if (!validState) {
                 if (LOGGER.isWarnEnabled())
                     LOGGER.warn("actor {} status is not suitable for start. status={}", toNameType(), getStateAsString());
@@ -217,25 +211,25 @@ public abstract class ActorBase extends NotificationBroadcasterSupport implement
             if (runasync) {
                 if (LOGGER.isInfoEnabled())
                     LOGGER.info("actor {} start async", toNameType());
-                this.state.set(STARTED);
+                this.state = STARTED;
                 lastStartedTime = new Date();
                 sendStartNotification();
             } else
-                this.state.set(STARTING);
+                this.state = (STARTING);
             // in async mode start service method lock until stop
             if (LOGGER.isWarnEnabled())
                 LOGGER.warn("starting actor {} async mode={}", toNameType(), runasync);
             startService();
             if (runasync) {
                 sendStopNotification();
-                this.state.set(STOPPED);
+                this.state = (STOPPED);
             } else {
-                this.state.set(STARTED);
+                this.state = (STARTED);
                 lastStartedTime = new Date();
                 sendStartNotification();
             }
         } catch (Throwable t) {
-            state.set(START_FAILED);
+            state = (START_FAILED);
 
             if (LOGGER.isErrorEnabled())
                 LOGGER.error("start error", t);
@@ -251,19 +245,19 @@ public abstract class ActorBase extends NotificationBroadcasterSupport implement
         if (LOGGER.isWarnEnabled())
             LOGGER.warn("stopping actor that name={}", toNameType());
 
-        while (state.get() == STARTING || state.get() == STOPPING) {
+        while (state == STARTING || state == STOPPING) {
             sendInProgressNotification();
             if (LOGGER.isWarnEnabled())
                 LOGGER.warn("actor {} status is not suitable for stop. relax and try again.status={}", toNameType(), getStateAsString());
             relax();
         }
-        if (state.get() != STARTED) {
+        if (state != STARTED) {
             if (LOGGER.isWarnEnabled())
                 LOGGER.warn("actor {} status is not started for stop. status={}", toNameType(), getStateAsString());
             return getStateAsString();
         }
         try {
-            state.set(STOPPING);
+            state = (STOPPING);
             if (LOGGER.isWarnEnabled())
                 LOGGER.warn("stopping actor {} ", toNameType());
             stopService();
@@ -271,10 +265,10 @@ public abstract class ActorBase extends NotificationBroadcasterSupport implement
                 LOGGER.warn("stop actor {} ", toNameType());
 
             lastStoppedTime = new Date();
-            state.set(STOPPED);
+            state = (STOPPED);
             sendStopNotification();
         } catch (Throwable t) {
-            state.set(STOP_FAILED);
+            state = (STOP_FAILED);
             if (LOGGER.isErrorEnabled())
                 LOGGER.error("stop error", t);
             sendStopFailNotification();
@@ -292,17 +286,19 @@ public abstract class ActorBase extends NotificationBroadcasterSupport implement
         return lastStoppedTime;
     }
 
-    public int getState() {
-        return state.get();
+    public ActorState getState() {
+        return state;
     }
 
     public String getStateAsString() {
-        return state.get() >= 0 ? stateString[state.get()] : "NotInit";
+        if (state == null)
+            return "null";
+        return state.toString();
     }
 
 
     public boolean isRunning() {
-        return state.get() == STARTING || state.get() == STARTED;
+        return state == STARTING || state == STARTED;
     }
 
     /**
@@ -324,7 +320,7 @@ public abstract class ActorBase extends NotificationBroadcasterSupport implement
                 LOGGER.error("error stop in destroy. maybe need restart system", e);
         }
         ActorRepository.getInstance().unregister(this);
-        state.set(-1);
+        state = null;
         try {
             if (LOGGER.isWarnEnabled())
                 LOGGER.warn("destroying actor={}", toNameType());

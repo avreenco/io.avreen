@@ -6,44 +6,6 @@ package io.avreen.common.actor;
  */
 public interface IActor {
     /**
-     * The constant STOPPED.
-     */
-    int STOPPED = 0;
-    /**
-     * The constant STOPPING.
-     */
-    int STOPPING = 1;
-    /**
-     * The constant STARTING.
-     */
-    int STARTING = 2;
-    /**
-     * The constant STARTED.
-     */
-    int STARTED = 3;
-    /**
-     * The constant START_FAILED.
-     */
-    int START_FAILED = 4;
-
-    /**
-     * The constant STOP_FAILED.
-     */
-    int STOP_FAILED = 5;
-    /**
-     * The constant INIT.
-     */
-    int INIT = 6;
-    /**
-     * The constant INIT_FAILED.
-     */
-    int INIT_FAILED = 7;
-    /**
-     * The constant INITING.
-     */
-    int INITING = 8;
-
-    /**
      * Gets name.
      *
      * @return the name
@@ -78,7 +40,7 @@ public interface IActor {
      *
      * @return the state
      */
-    int getState();
+    ActorState getState();
 
     /**
      * Gets type.
