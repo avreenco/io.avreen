@@ -81,8 +81,8 @@ public class ISOMsgKeyProvider implements IMessageKeyProvider<ISOMsg> {
         this.key = key;
     }
 
-    public String getKey(ISOMsg m, String out, boolean outgoing) {
-        StringBuilder sb = new StringBuilder(out);
+    public String getKey(ISOMsg m, String ownerName, boolean outgoing) {
+        StringBuilder sb = new StringBuilder(ownerName);
         sb.append('.');
         String mapMTI = mapMTI(m.getMTI());
         sb.append(mapMTI);

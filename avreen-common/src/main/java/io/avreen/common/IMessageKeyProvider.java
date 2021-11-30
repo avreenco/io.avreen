@@ -10,9 +10,9 @@ public interface IMessageKeyProvider<T> {
      * Gets key.
      *
      * @param m        the m
-     * @param muxName  the mux name
+     * @param ownerName  the mux name
      * @param outgoing the outgoing
      * @return the key
      */
-    String getKey(T m, String muxName, boolean outgoing);
+    String getKey(T m, String ownerName, boolean outgoing);
 }

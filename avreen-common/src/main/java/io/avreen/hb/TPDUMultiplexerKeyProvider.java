@@ -10,7 +10,7 @@ import java.nio.ByteBuffer;
  */
 public class TPDUMultiplexerKeyProvider implements IMessageKeyProvider<HeaderBodyObject> {
     @Override
-    public String getKey(HeaderBodyObject m, String outKey, boolean outgoing) {
+    public String getKey(HeaderBodyObject m, String ownerName, boolean outgoing) {
         if (outgoing) {
             ByteBuffer wrapped = ByteBuffer.wrap(TPDUUtil.getSourceAddress(m.getHeader()));
             return ((Short) (wrapped.getShort())).toString();

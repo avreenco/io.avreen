@@ -1,11 +1,11 @@
 package io.avreen.common.util;
 
-import org.slf4j.MDC;
-
 /**
  * The class Message diagnostic key.
  */
 public class MessageDiagnosticKey {
+
+    private static IMessageDiagnosticKeyProvider provider;
 
 
     /**
@@ -15,7 +15,8 @@ public class MessageDiagnosticKey {
      * @param value the value
      */
     public static void put(String key, String value) {
-        MDC.put(key, value);
+        if (provider != null)
+            provider.put(key, value);
     }
 
     /**
@@ -25,7 +26,9 @@ public class MessageDiagnosticKey {
      * @return the string
      */
     public static String get(String key) {
-        return MDC.get(key);
+        if (provider != null)
+            return provider.get(key);
+        return null;
     }
 
     /**
@@ -34,6 +37,15 @@ public class MessageDiagnosticKey {
      * @param key the key
      */
     public static void remove(String key) {
-        MDC.remove(key);
+        if (provider != null)
+            provider.remove(key);
+    }
+
+    public static IMessageDiagnosticKeyProvider getProvider() {
+        return provider;
+    }
+
+    public static void setProvider(IMessageDiagnosticKeyProvider provider) {
+        MessageDiagnosticKey.provider = provider;
     }
 }

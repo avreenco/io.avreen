@@ -15,8 +15,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -30,7 +28,7 @@ public class SLF4JISOMsgLogHandler extends ChannelDuplexHandler implements Clone
     private static final InternalLogger logger_out = InternalLoggerFactory.getInstance(LoggerDomain.Name + ".iso8583.channel.SLF4JISOMsgLogHandler.out");
     private static final InternalLogger logger_in_reject = InternalLoggerFactory.getInstance(LoggerDomain.Name + ".iso8583.channel.SLF4JISOMsgLogHandler.in.reject");
     private static final InternalLogger logger_out_reject = InternalLoggerFactory.getInstance(LoggerDomain.Name + ".iso8583.channel.SLF4JISOMsgLogHandler.out.reject");
-    private static Logger logger = LoggerFactory.getLogger(LoggerDomain.Name + ".iso8583.channel.SLF4JISOMsgLogHandler");
+    private static InternalLogger logger = InternalLoggerFactory.getInstance(LoggerDomain.Name + ".iso8583.channel.SLF4JISOMsgLogHandler");
 
     private String name;
     private Set<Integer> excludeField = new HashSet<>();
@@ -167,7 +165,7 @@ public class SLF4JISOMsgLogHandler extends ChannelDuplexHandler implements Clone
                 ISOMsg isoMsg = (ISOMsg) msg;
                 ChannelLogInfo channelLogInfo = null;
                 if (ctx.channel() != null)
-                    channelLogInfo = new ChannelLogInfo(ctx.channel().remoteAddress(), ctx.channel().localAddress(),ctx.channel().id().toString());
+                    channelLogInfo = new ChannelLogInfo(ctx.channel().remoteAddress(), ctx.channel().localAddress(), ctx.channel().id().toString());
                 String logEvent = msgLogUtil.buildIncomingISOMsgLog(getName(), isoMsg, channelLogInfo);
                 if (isoMsg.isReject())
                     logger_in_reject.info(logEvent);
@@ -195,7 +193,7 @@ public class SLF4JISOMsgLogHandler extends ChannelDuplexHandler implements Clone
                 ISOMsg isoMsg = (ISOMsg) msg;
                 ChannelLogInfo channelLogInfo = null;
                 if (ctx.channel() != null)
-                    channelLogInfo = new ChannelLogInfo(ctx.channel().remoteAddress(), ctx.channel().localAddress(),ctx.channel().id().toString());
+                    channelLogInfo = new ChannelLogInfo(ctx.channel().remoteAddress(), ctx.channel().localAddress(), ctx.channel().id().toString());
                 String logEvent = msgLogUtil.buildOutgoingISOMsgLog(getName(), isoMsg, channelLogInfo);
                 if (isoMsg.isReject())
                     logger_out_reject.info(logEvent);
