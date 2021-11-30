@@ -17,6 +17,7 @@
     <modules>
         <module>avreen-common</module>
         <module>avreen-iso8583</module>
+        <module>avreen-hb</module>
         <module>avreen-example-core</module>
 
     </modules>
@@ -27,6 +28,11 @@
             <dependency>
                 <groupId>io.avreen</groupId>
                 <artifactId>avreen-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.avreen</groupId>
+                <artifactId>avreen-hb</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
