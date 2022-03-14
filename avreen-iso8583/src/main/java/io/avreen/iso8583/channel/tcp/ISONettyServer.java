@@ -14,26 +14,6 @@ public class ISONettyServer extends NettyServerBase<ISOMsg> implements ISONettyS
     private ISOTcpChannelProperties isoTcpChannelProperties;
 
     /**
-     * Builder iso netty server builder.
-     *
-     * @return the iso netty server builder
-     */
-    public static ISONettyServerBuilder Builder() {
-        return new ISONettyServerBuilder();
-    }
-
-    /**
-     * Builder iso netty server builder.
-     *
-     * @param port the port
-     * @return the iso netty server builder
-     */
-    public static ISONettyServerBuilder Builder(int port) {
-        return new ISONettyServerBuilder().port(port);
-    }
-
-
-    /**
      * Instantiates a new Iso netty server.
      */
     protected ISONettyServer() {

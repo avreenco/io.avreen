@@ -3,7 +3,7 @@ package io.avreen.iso8583.util;
 /**
  * The class Invalid field exception.
  */
-public class InvalidFieldException extends Exception {
+public class ISOFieldException extends RuntimeException {
     private static final long serialVersionUID = 1L;
     /**
      * The Field number.
@@ -12,7 +12,7 @@ public class InvalidFieldException extends Exception {
     /**
      * The Error code.
      */
-    String errorCode = IErrorCode.InavlidFieldFormat;
+    int errorCode ;
 
     /**
      * Instantiates a new Invalid field exception.
@@ -21,7 +21,7 @@ public class InvalidFieldException extends Exception {
      * @param errorCode   the error code
      * @param message     the message
      */
-    public InvalidFieldException(int fieldNumber, String errorCode, String message) {
+    public ISOFieldException(int fieldNumber, int errorCode, String message) {
         super(message);
         this.fieldNumber = fieldNumber;
         this.errorCode = errorCode;
@@ -34,7 +34,7 @@ public class InvalidFieldException extends Exception {
      * @param errorCode   the error code
      * @param e           the e
      */
-    public InvalidFieldException(int fieldNumber, String errorCode, Throwable e) {
+    public ISOFieldException(int fieldNumber, int errorCode, Throwable e) {
         super(e);
         this.fieldNumber = fieldNumber;
         this.errorCode = errorCode;
@@ -46,10 +46,10 @@ public class InvalidFieldException extends Exception {
      * @param fieldNumber the field number
      * @param e           the e
      */
-    public InvalidFieldException(int fieldNumber, Throwable e) {
+    public ISOFieldException(int fieldNumber, Throwable e) {
         super(e);
         this.fieldNumber = fieldNumber;
-        this.errorCode = IErrorCode.InvalifFormat;
+        this.errorCode = IErrorCode.InvalidFieldFormat;
     }
 
     /**
@@ -57,7 +57,7 @@ public class InvalidFieldException extends Exception {
      *
      * @return the error code
      */
-    public String getErrorCode() {
+    public int getErrorCode() {
         return errorCode;
     }
 

@@ -2,6 +2,7 @@ package io.avreen.iso8583.channel.tcp;
 
 import io.avreen.common.netty.client.NettyClientBase;
 import io.avreen.iso8583.common.ISOMsg;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.ByteToMessageCodec;
 
@@ -10,26 +11,6 @@ import io.netty.handler.codec.ByteToMessageCodec;
  */
 public class ISONettyClient extends NettyClientBase<ISOMsg> implements ISONettyClientMXBean, ITcpISOChannel {
     private ISOTcpChannelProperties isoTcpChannelProperties;
-
-    /**
-     * Builder iso netty client builder.
-     *
-     * @return the iso netty client builder
-     */
-    public static ISONettyClientBuilder Builder() {
-        return new ISONettyClientBuilder();
-    }
-
-    /**
-     * Builder iso netty client builder.
-     *
-     * @param host the host
-     * @param port the port
-     * @return the iso netty client builder
-     */
-    public static ISONettyClientBuilder Builder(String host, int port) {
-        return new ISONettyClientBuilder().host(host).port(port);
-    }
 
     /**
      * Instantiates a new Iso netty client.
@@ -85,7 +66,6 @@ public class ISONettyClient extends NettyClientBase<ISOMsg> implements ISONettyC
 
     }
 
-
     /**
      * Build byte to message codec byte to message codec.
      *
@@ -122,6 +102,10 @@ public class ISONettyClient extends NettyClientBase<ISOMsg> implements ISONettyC
         return null;
     }
 
+    @Override
+    public Channel send(ISOMsg msg) {
+        return super.send(msg);
+    }
 
     @Override
     public String getChannelProps() {

@@ -1,5 +1,8 @@
 package io.avreen.iso8583.util;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.avreen.iso8583.common.ISOComponent;
 import io.avreen.iso8583.common.ISOComponentDumper;
 import io.avreen.iso8583.common.ISOMsg;
@@ -20,12 +23,12 @@ public class ISOMsgLogUtil {
     private Integer[] messageTraceField = null;
     private String messageTraceFieldDelimiter = ",";
     private boolean logHeader = true;
-
+    private ObjectMapper objectMapper = new ObjectMapper();
     /**
      * Instantiates a new Iso msg log util.
      */
     public ISOMsgLogUtil() {
-
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
     /**
@@ -35,6 +38,7 @@ public class ISOMsgLogUtil {
      * @param includeField the include field
      */
     public ISOMsgLogUtil(Set<Integer> excludeField, Set<Integer> includeField) {
+        this();
         this.excludeField = excludeField;
         this.includeField = includeField;
     }
@@ -93,22 +97,19 @@ public class ISOMsgLogUtil {
         this.logHeader = logHeader;
     }
 
-    private void dumpELKFormat(ArrayList<String> stringArrayList, ISOMsg isoMsg, ISOMsg.Direction direction) {
+    private void dumpELKFormat(Map<String,Object> logMap, ISOMsg isoMsg, ISOMsg.Direction direction) {
 
         if (direction != null) {
-            MsgLogUtil.dumpELKFormat(stringArrayList, "dir", direction.equals(ISOMsg.Direction.incoming) ? "in" : "out");
+            MsgLogUtil.dumpELKFormat(logMap, "dir", direction.equals(ISOMsg.Direction.incoming) ? "in" : "out");
         }
         if (isoMsg.isReject()) {
-            MsgLogUtil.dumpELKFormat(stringArrayList, "rjc", isoMsg.getRejectCode());
-            if (isoMsg.getRejectBuffer() != null) {
-                MsgLogUtil.dumpELKFormat(stringArrayList, "rjb", ISOUtil.hexString(isoMsg.getRejectBuffer()));
-            }
+            MsgLogUtil.dumpELKFormat(logMap, "rjc", isoMsg.getRejectCode());
         }
 
 
         if (isoMsg.getISOHeader() != null) {
             if (logHeader)
-                MsgLogUtil.dumpELKFormat(stringArrayList, "header", ISOUtil.hexString(isoMsg.getISOHeader()));
+                MsgLogUtil.dumpELKFormat(logMap, "header", ISOUtil.hexString(isoMsg.getISOHeader()));
         }
 
 
@@ -118,7 +119,7 @@ public class ISOMsgLogUtil {
             if (includeField != null && includeField.size() > 0)
                 fieldSet = includeField;
 
-            ArrayList<String> bodyStringList = new ArrayList<>();
+            HashMap<String,String>  bodyMap = new HashMap<>();
             for (Object fno : fieldSet) {
                 int fieldNo = (int) fno;
                 if (excludeField != null && excludeField.contains(fieldNo))
@@ -130,24 +131,17 @@ public class ISOMsgLogUtil {
                     continue;
 
                 StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.append("\"i");
-                stringBuilder.append(fno);
-                stringBuilder.append("\"");
-                stringBuilder.append(":");
-                stringBuilder.append("\"");
+                String  key = "i"+fno;
                 ISOComponentDumper isoComponentDumper = DumpUtil.getIsoComponentDumper(isoComponent);
                 Object valueString = isoComponentDumper.convertToString(isoComponent);
-                if (valueString != null)
-                    stringBuilder.append(valueString);
-                stringBuilder.append("\"");
-                bodyStringList.add(stringBuilder.toString());
+                if(valueString!=null)
+                    bodyMap.put(key , valueString.toString());
             }
-            String bodyString = MsgLogUtil.ArrayListToString(bodyStringList);
-            MsgLogUtil.dumpELKFormat(stringArrayList, "body", bodyString, true);
+            MsgLogUtil.dumpELKFormat(logMap, "body", bodyMap);
         }
     }
 
-    private void dumpELKFormatMessageKey(ArrayList<String> stringArrayList, ISOMsg isoMsg) {
+    private void dumpELKFormatMessageKey(Map<String,Object> logMap, ISOMsg isoMsg) {
 
         if (messageTraceField == null)
             return;
@@ -161,7 +155,7 @@ public class ISOMsgLogUtil {
         if (msgField.size() == 0)
             return;
         String key = String.join(messageTraceFieldDelimiter, msgField);
-        MsgLogUtil.dumpELKFormat(stringArrayList, "m-trace", key);
+        MsgLogUtil.dumpELKFormat(logMap, "m-trace", key);
     }
 
     /**
@@ -172,17 +166,17 @@ public class ISOMsgLogUtil {
      * @param channelLogInfo the channel log info
      * @return the string
      */
-    public String buildIncomingISOMsgLog(String ownerName, ISOMsg isoMsg, ChannelLogInfo channelLogInfo) {
+    public String buildIncomingISOMsgLog(String ownerName, ISOMsg isoMsg, ChannelLogInfo channelLogInfo) throws JsonProcessingException {
         {
-            ArrayList<String> strings = new ArrayList<>();
-            MsgLogUtil.dumpELKFormat(strings, "dt", dateFormat.format(new Date()));
-            MsgLogUtil.dumpELKFormat(strings, "name", ownerName);
-            MsgLogUtil.dumpELKFormatKeyTrace(strings, isoMsg.getMsgContext());
-            dumpELKFormatMessageKey(strings, isoMsg);
-            MsgLogUtil.dumpELKFormatChannel(strings, channelLogInfo);
-            MsgLogUtil.dumpELKFormatNode(strings, isoMsg.getMsgContext());
-            dumpELKFormat(strings, isoMsg, ISOMsg.Direction.incoming);
-            return MsgLogUtil.ArrayListToString(strings);
+            Map<String,Object> logMap = new HashMap<>();
+            MsgLogUtil.dumpELKFormat(logMap, "dt", dateFormat.format(new Date()));
+            MsgLogUtil.dumpELKFormat(logMap, "name", ownerName);
+            MsgLogUtil.dumpELKFormatKeyTrace(logMap, isoMsg.getMsgContext());
+            dumpELKFormatMessageKey(logMap, isoMsg);
+            MsgLogUtil.dumpELKFormatChannel(logMap, channelLogInfo);
+            MsgLogUtil.dumpELKFormatNode(logMap, isoMsg.getMsgContext());
+            dumpELKFormat(logMap, isoMsg, ISOMsg.Direction.incoming);
+            return objectMapper.writeValueAsString(logMap);
         }
     }
 
@@ -194,17 +188,17 @@ public class ISOMsgLogUtil {
      * @param channelLogInfo the channel log info
      * @return the string
      */
-    public String buildOutgoingISOMsgLog(String ownerName, ISOMsg isoMsg, ChannelLogInfo channelLogInfo) {
+    public String buildOutgoingISOMsgLog(String ownerName, ISOMsg isoMsg, ChannelLogInfo channelLogInfo) throws JsonProcessingException {
         {
-            ArrayList<String> strings = new ArrayList<>();
-            MsgLogUtil.dumpELKFormat(strings, "dt", dateFormat.format(new Date()));
-            MsgLogUtil.dumpELKFormat(strings, "name", ownerName);
-            MsgLogUtil.dumpELKFormatKeyTrace(strings, isoMsg.getMsgContext());
-            dumpELKFormatMessageKey(strings, isoMsg);
-            MsgLogUtil.dumpELKFormatChannel(strings, channelLogInfo);
-            MsgLogUtil.dumpELKFormatNode(strings, isoMsg.getMsgContext());
-            dumpELKFormat(strings, isoMsg, ISOMsg.Direction.outgoing);
-            return MsgLogUtil.ArrayListToString(strings);
+            Map<String,Object> logMap = new HashMap<>();
+            MsgLogUtil.dumpELKFormat(logMap, "dt", dateFormat.format(new Date()));
+            MsgLogUtil.dumpELKFormat(logMap, "name", ownerName);
+            MsgLogUtil.dumpELKFormatKeyTrace(logMap, isoMsg.getMsgContext());
+            dumpELKFormatMessageKey(logMap, isoMsg);
+            MsgLogUtil.dumpELKFormatChannel(logMap, channelLogInfo);
+            MsgLogUtil.dumpELKFormatNode(logMap, isoMsg.getMsgContext());
+            dumpELKFormat(logMap, isoMsg, ISOMsg.Direction.outgoing);
+            return objectMapper.writeValueAsString(logMap);
         }
     }
 }

@@ -4,6 +4,7 @@ package io.avreen.iso8583.channel.tcp;
  * Created by asgharnejad on 9/16/2017.
  */
 
+import io.avreen.common.codec.tcp.IDynamicHeaderCodec;
 import io.avreen.common.codec.tcp.IMessageHeaderCodec;
 import io.avreen.common.codec.tcp.IMessageLenCodec;
 import io.avreen.common.context.MessageTypes;
@@ -11,7 +12,6 @@ import io.avreen.common.context.MsgTracer;
 import io.avreen.common.log.LoggerDomain;
 import io.avreen.common.util.SystemPropUtil;
 import io.avreen.iso8583.common.ISOMsg;
-import io.avreen.iso8583.packager.api.IRejectMsgPackager;
 import io.avreen.iso8583.packager.api.ISOMsgPackager;
 import io.avreen.iso8583.util.ISOUtil;
 import io.netty.buffer.ByteBuf;
@@ -71,7 +71,7 @@ class ISOMsgEncoder {
     protected void encode(ISOMsg m, ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, int maxMessageSize, boolean allocateDirect) throws Exception {
         if (messageLenCodec == null)
             throw new RuntimeException("message len codec is null");
-
+        m.recalcBitMap();
         if (m.getMsgContext() != null)
             MsgTracer.inject(m.getMsgContext().getTracer());
 
@@ -80,11 +80,15 @@ class ISOMsgEncoder {
 
         if (logger.isDebugEnabled())
             logger.debug("encode message={}", m);
-
-
         int headerLen = 0;
-        if (messageHeaderCodec != null)
-            headerLen = messageHeaderCodec.getHeaderLength();
+        IDynamicHeaderCodec dynamicHeaderCodec = null;
+        if (messageHeaderCodec != null) {
+            headerLen = m.getISOHeader().length;
+            if (messageHeaderCodec instanceof IDynamicHeaderCodec) {
+                dynamicHeaderCodec = (IDynamicHeaderCodec) messageHeaderCodec;
+                headerLen += dynamicHeaderCodec.getHeaderLenCodec().getLengthBytes();
+            }
+        }
 
 
         ByteBuffer byteBuffer;
@@ -97,30 +101,20 @@ class ISOMsgEncoder {
 
         int pkgLen = 0;
         int currentPosition = byteBuffer.position();
-        if (m.isReject() && m.getRejectBuffer() != null) {
-            if (isoPackager instanceof IRejectMsgPackager) {
-                pkgLen = ((IRejectMsgPackager) isoPackager).pack(m.getRejectBuffer(), byteBuffer);
-            } else {
-                pkgLen = m.getRejectBuffer().length;
-                byteBuffer.put(m.getRejectBuffer());
-            }
-        } else {
-            pkgLen = isoPackager.pack(m, byteBuffer);
-            if (logger.isDebugEnabled())
-                logger.debug("body total bytes={}", pkgLen);
-            if (logger.isDebugEnabled()) {
-                if (pkgLen > 0) {
-                    byte[] b = new byte[pkgLen];
-                    byteBuffer.position(currentPosition);
-                    byteBuffer.get(b);
-                    if (debugBodyBuffer && logger.isDebugEnabled())
-                        logger.debug("encode body buffer={}", ISOUtil.hexString(b));
+        pkgLen = isoPackager.pack(m, byteBuffer);
+        if (logger.isDebugEnabled())
+            logger.debug("body total bytes={}", pkgLen);
+        if (logger.isDebugEnabled()) {
+            if (pkgLen > 0) {
+                byte[] b = new byte[pkgLen];
+                byteBuffer.position(currentPosition);
+                byteBuffer.get(b);
+                if (debugBodyBuffer && logger.isDebugEnabled())
+                    logger.debug("encode body buffer={}", ISOUtil.hexString(b));
 
-                }
             }
 
         }
-
         byteBuffer.flip();
         int totalLen = pkgLen + headerLen;
         if (logger.isDebugEnabled())
@@ -130,7 +124,6 @@ class ISOMsgEncoder {
             logger.debug("len encode bytes={}", ISOUtil.hexString(lengthBytes));
 
         byteBuffer.put(lengthBytes);
-
         if (headerLen > 0) {
             MessageTypes mt = MessageTypes.Response;
             if (m.isReject())
@@ -140,6 +133,11 @@ class ISOMsgEncoder {
             byte[] isoHeader = messageHeaderCodec.encodeHeader(m.getISOHeader(), mt, m.getRejectCode());
             if (logger.isDebugEnabled())
                 logger.debug("header encode bytes={}", ISOUtil.hexString(isoHeader));
+            if(dynamicHeaderCodec!=null)
+            {
+                byte[] headerLenBytes = dynamicHeaderCodec.getHeaderLenCodec().encodeMessageLength(isoHeader.length);
+                byteBuffer.put(headerLenBytes);
+            }
             byteBuffer.put(isoHeader);
         }
 

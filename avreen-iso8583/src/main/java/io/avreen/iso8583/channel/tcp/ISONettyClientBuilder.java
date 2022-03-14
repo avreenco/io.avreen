@@ -13,7 +13,7 @@ public class ISONettyClientBuilder extends NettyClientBaseBuilder<ISONettyClient
     /**
      * Instantiates a new Iso netty client builder.
      */
-    protected ISONettyClientBuilder() {
+    public ISONettyClientBuilder() {
         super(new ISONettyClient());
     }
 

@@ -13,8 +13,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 
-import java.util.Arrays;
-
 
 /**
  * The class Iso message codec handler.
@@ -44,12 +42,7 @@ public class ISOMessageCodecHandler extends MessageCodecHandlerBase<ISOMsg> {
 
     @Override
     protected void encodeMessage(ChannelHandlerContext channelHandlerContext, ISOMsg msg, ByteBuf byteBuf) throws Exception {
-        try {
-            encodeISOMsg(channelHandlerContext, msg, byteBuf);
-        } finally {
-            if (msg.getRejectBuffer() != null)
-                Arrays.fill(msg.getRejectBuffer(), (byte) 0);
-        }
+        encodeISOMsg(channelHandlerContext, msg, byteBuf);
     }
 
     /**

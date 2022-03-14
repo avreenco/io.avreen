@@ -7,30 +7,23 @@ public interface IErrorCode {
     /**
      * The constant MandetoryFieldNotExist.
      */
-    String MandetoryFieldNotExist = "0001";
+    Integer MandatoryFieldNotExist = 1001;
     /**
      * The constant InavlidFieldLen.
      */
-    String InavlidFieldLen = "0002";
+    Integer InvalidFieldLen = 1002;
     /**
      * The constant InavlidFieldFormat.
      */
-    String InavlidFieldFormat = "0003";
+    Integer InvalidFieldFormat = 1003;
     /**
      * The constant InvalidAmountField.
      */
-    String InvalidAmountField = "0004";
-    /**
-     * The constant InvalidDateField.
-     */
-    String InvalidDateField = "0005";
+    Integer InvalidAmountField = 1004;
+
     /**
      * The constant InvalidAccountFormat.
      */
-    String InvalidAccountFormat = "0006";
-    /**
-     * The constant InvalifFormat.
-     */
-    String InvalifFormat = "0008";
+    Integer InvalidAccountFormat = 1006;
 
 }

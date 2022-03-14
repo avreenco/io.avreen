@@ -3,6 +3,7 @@ package io.avreen.examples.core.iso8583.nettyserver;
 import io.avreen.common.codec.tcp.ASCIIMessageLenCodec;
 import io.avreen.examples.core.iso8583.common.SampleRequestISOMsgProcessor;
 import io.avreen.iso8583.channel.tcp.ISONettyServer;
+import io.avreen.iso8583.channel.tcp.ISONettyServerBuilder;
 import io.avreen.iso8583.packager.impl.ISO87APackager;
 
 import java.time.Duration;
@@ -19,12 +20,12 @@ public class server_example0 {
      * @param args the input arguments
      */
     public static void main(String[] args) {
-        ISONettyServer.Builder()
+        new ISONettyServerBuilder()
                 .messageLenCodec(new ASCIIMessageLenCodec())
                 .isoPackager(new ISO87APackager())
                 .idleTime(Duration.ofSeconds(10))
                 .port(6011).processor(new SampleRequestISOMsgProcessor()).build().start();
-        ISONettyServer.Builder()
+        new ISONettyServerBuilder()
                 .messageLenCodec(new ASCIIMessageLenCodec())
                 .isoPackager(new ISO87APackager())
                 .idleTime(Duration.ofSeconds(10))

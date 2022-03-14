@@ -4,15 +4,17 @@ package io.avreen.iso8583.channel.tcp;
  * Created by asgharnejad on 9/16/2017.
  */
 
+import io.avreen.common.codec.tcp.IDynamicHeaderCodec;
 import io.avreen.common.codec.tcp.IMessageHeaderCodec;
 import io.avreen.common.codec.tcp.IMessageLenCodec;
 import io.avreen.common.codec.tcp.RejectCodeSupportCodec;
-import io.avreen.common.context.ISystemRejectCodes;
 import io.avreen.common.context.MsgTracer;
 import io.avreen.common.log.LoggerDomain;
 import io.avreen.common.util.SystemPropUtil;
+import io.avreen.iso8583.common.IIsoRejectCodes;
 import io.avreen.iso8583.common.ISOMsg;
 import io.avreen.iso8583.packager.api.ISOMsgPackager;
+import io.avreen.iso8583.util.ISOFieldException;
 import io.avreen.iso8583.util.ISOUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -59,19 +61,13 @@ class ISOMsgDecoder {
         this.messageLenCodec = messageLenCodec;
     }
 
-    private void setRejectBuffer(ISOMsg rejectMsg, byte[] lenBytes, byte[] header, ByteBuffer byteBuffer) {
-        byte[] body = lenBytes;
-        if (header != null)
-            body = ISOUtil.concat(body, header);
-        if (byteBuffer != null) {
-            byteBuffer.rewind();
-            byte[] unpackBytes = new byte[byteBuffer.limit()];
-            byteBuffer.get(unpackBytes);
-            body = ISOUtil.concat(body, unpackBytes);
-        }
-        rejectMsg.setRejectBuffer(body);
-
+    private byte[] getRawBodyBuffer(ByteBuffer byteBuffer) {
+        byteBuffer.position(0);
+        byte[] b = new byte[byteBuffer.limit()];
+        byteBuffer.get(b);
+        return b;
     }
+
 
     /**
      * Decode decode result.
@@ -90,22 +86,20 @@ class ISOMsgDecoder {
             if (logger.isDebugEnabled())
                 logger.debug("decode channel={}", channelHandlerContext.channel());
             int messageLength = messageLenCodec.getLengthBytes();
-            int headerLen = 0;
-            if (messageHeaderCodec != null)
-                headerLen = messageHeaderCodec.getHeaderLength();
-            int totalHeader = messageLength + headerLen;
+            //int headerLen = 0;
+            //if (messageHeaderCodec != null)
+            //  headerLen = messageHeaderCodec.getHeaderLength();
+            //int totalHeader = messageLength + headerLen;
 
-            if (byteBuf.readableBytes() < totalHeader) {
+            if (byteBuf.readableBytes() < messageLength) {
                 if (logger.isWarnEnabled())
-                    logger.warn("read buffer pool is full temporary for read iso message length&header readableBytes={} expect={}", byteBuf.readableBytes(), totalHeader);
+                    logger.warn("read buffer pool is full temporary for read iso message length&header readableBytes={} expect={}", byteBuf.readableBytes(), messageLength);
                 return new DecodeResult(DecodeStatus.DecodeLenNotReady);
             }
-            byte[] lenAndHeaderBytes = new byte[totalHeader];
-            byteBuf.readBytes(lenAndHeaderBytes);
+            byte[] lenBytes = new byte[messageLength];
+            byteBuf.readBytes(lenBytes);
             int len = 0;
             try {
-                byte[] lenBytes = new byte[messageLength];
-                System.arraycopy(lenAndHeaderBytes, 0, lenBytes, 0, messageLength);
                 if (logger.isDebugEnabled())
                     logger.debug("receive len bytes={}", ISOUtil.hexString(lenBytes));
                 len = messageLenCodec.decodeMessageLength(lenBytes);
@@ -116,8 +110,7 @@ class ISOMsgDecoder {
                     logger.error("invalid message len", ex);
                 ISOMsg rejectMsg = null;
                 rejectMsg = isoPackager.createComponent();
-                rejectMsg.setRejectCode(ISystemRejectCodes.InvalidMsgLen);
-                setRejectBuffer(rejectMsg, lenAndHeaderBytes, null, null);
+                rejectMsg.setRejectCode(IIsoRejectCodes.InvalidMsgLen);
                 return new DecodeResult(DecodeStatus.DecodeLenException, rejectMsg);
             }
             if (logger.isDebugEnabled())
@@ -125,20 +118,8 @@ class ISOMsgDecoder {
             if (len == 0)
                 return new DecodeResult(DecodeStatus.DecodeLenNotZero);
             byte[] header = null;
-
-            if (headerLen > 0) {
-                if (logger.isDebugEnabled())
-                    logger.debug("header length={}", headerLen);
-
-                header = new byte[headerLen];
-                System.arraycopy(lenAndHeaderBytes, messageLength, header, 0, headerLen);
-                if (logger.isDebugEnabled())
-                    logger.debug("header value={}", ISOUtil.hexString(header));
-
-                len -= headerLen;
-            }
             if (byteBuf.readableBytes() < (len)) {
-                byteBuf.readerIndex(byteBuf.readerIndex() - totalHeader);
+                byteBuf.readerIndex(byteBuf.readerIndex() - messageLength);
                 if (logger.isWarnEnabled())
                     logger.warn("read buffer pool is full temporary for read iso message body readableBytes={} expect={}", byteBuf.readableBytes(), len);
                 return new ISOMsgDecoder.DecodeResult(ISOMsgDecoder.DecodeStatus.DecodeBodyNotReady);
@@ -149,10 +130,25 @@ class ISOMsgDecoder {
             else
                 byteBuffer = ByteBuffer.allocate(len);
             byteBuf.readBytes(byteBuffer);
+            byteBuffer.position(0);
+            if (messageHeaderCodec != null) {
+                int headerLength = 0 ;
+                if(messageHeaderCodec instanceof IDynamicHeaderCodec) {
+                    IDynamicHeaderCodec dynamicHeaderCodec = (IDynamicHeaderCodec) messageHeaderCodec;
+                    IMessageLenCodec headerLenCodec = dynamicHeaderCodec.getHeaderLenCodec();
+                    byte[] headerLenBytes = new byte[headerLenCodec.getLengthBytes()];
+                    byteBuffer.get(headerLenBytes);
+                    headerLength = headerLenCodec.decodeMessageLength(headerLenBytes);
+                }
+                else
+                {
+                    headerLength = messageHeaderCodec.getHeaderLength();
+                }
+                header = new byte[headerLength];
+                byteBuffer.get(header);
 
+            }
             ISOMsg isoMsg = isoPackager.createComponent();
-
-            setRejectBuffer(isoMsg, lenAndHeaderBytes, header, byteBuffer);
             isoMsg.setISOHeader(header);
             boolean rejectMessage = false;
             if (header != null) {
@@ -165,22 +161,22 @@ class ISOMsgDecoder {
             }
 
             if (!rejectMessage) {
-                byteBuffer.position(0);
                 try {
-
-                    this.isoPackager.unpack(isoMsg, byteBuffer);
-                    if (needRawBuffer) {
-                        byteBuffer.position(0);
-                        byte[] b = new byte[byteBuffer.limit()];
-                        byteBuffer.get(b);
-                        isoMsg.setRawBuffer(b);
-                        if (debugBodyBuffer && logger.isDebugEnabled())
-                            logger.debug("decode body buffer={}", ISOUtil.hexString(b));
+                    if (debugBodyBuffer && logger.isDebugEnabled()) {
+                        int position = byteBuffer.position();
+                        logger.debug("decode body buffer={}", ISOUtil.hexString(getRawBodyBuffer(byteBuffer)));
+                        byteBuffer.position(position);
                     }
+                    this.isoPackager.unpack(isoMsg, byteBuffer);
+                    if (needRawBuffer)
+                        isoMsg.setRawBuffer(getRawBodyBuffer(byteBuffer));
                 } catch (Exception e) {
                     if (logger.isErrorEnabled())
                         logger.error("unpack error len={} and exception={}", len, e);
-                    isoMsg.setRejectCode(ISystemRejectCodes.InvalidIsoMsg);
+                    if (e instanceof ISOFieldException)
+                        isoMsg.setRejectCode(((ISOFieldException) e).getErrorCode());
+                    else
+                        isoMsg.setRejectCode(IIsoRejectCodes.InvalidIsoMsg);
                 }
             }
 

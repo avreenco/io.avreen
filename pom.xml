@@ -17,6 +17,7 @@
     <modules>
         <module>avreen-common</module>
         <module>avreen-iso8583</module>
+        <module>avreen-iso8583-json-logger</module>
         <module>avreen-hb</module>
         <module>avreen-example-core</module>
 
@@ -39,6 +40,11 @@
             <dependency>
                 <groupId>io.avreen</groupId>
                 <artifactId>avreen-iso8583</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.avreen</groupId>
+                <artifactId>avreen-iso8583-json-logger</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

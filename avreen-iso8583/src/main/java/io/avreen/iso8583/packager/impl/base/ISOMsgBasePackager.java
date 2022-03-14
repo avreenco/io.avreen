@@ -6,6 +6,7 @@ import io.avreen.iso8583.packager.api.ISOComponentPackager;
 import io.avreen.iso8583.packager.api.ISOMsgPackager;
 import io.avreen.iso8583.packager.impl.ISOBitMapPackager;
 import io.avreen.iso8583.util.DumpUtil;
+import io.avreen.iso8583.util.ISOFieldException;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 
@@ -199,7 +200,7 @@ public abstract class ISOMsgBasePackager implements ISOMsgPackager {
      * @param byteBuffer            the byte buffer
      * @return the int
      */
-    public static int unpack(ISOComponentPackager[] fld, Map<Integer, ISOComponentDumper> isoComponentDumperMap, ISOMsg m, ByteBuffer byteBuffer) {
+    public static int unpack(ISOComponentPackager[] fld, Map<Integer, ISOComponentDumper> isoComponentDumperMap, ISOMsg m, ByteBuffer byteBuffer) throws ISOFieldException {
         return unpack(fld, thirdBitmapFieldDefault, isoComponentDumperMap, m, byteBuffer);
 
     }
@@ -212,7 +213,7 @@ public abstract class ISOMsgBasePackager implements ISOMsgPackager {
      * @param byteBuffer the byte buffer
      * @return the int
      */
-    public static int unpack(ISOComponentPackager[] fld, ISOMsg m, ByteBuffer byteBuffer) {
+    public static int unpack(ISOComponentPackager[] fld, ISOMsg m, ByteBuffer byteBuffer) throws ISOFieldException {
         return unpack(fld, thirdBitmapFieldDefault, null, m, byteBuffer);
     }
 
@@ -226,7 +227,7 @@ public abstract class ISOMsgBasePackager implements ISOMsgPackager {
      * @param byteBuffer            the byte buffer
      * @return the int
      */
-    public static int unpack(ISOComponentPackager[] fld, int thirdBitmapField, Map<Integer, ISOComponentDumper> isoComponentDumperMap, ISOMsg m, ByteBuffer byteBuffer) {
+    public static int unpack(ISOComponentPackager[] fld, int thirdBitmapField, Map<Integer, ISOComponentDumper> isoComponentDumperMap, ISOMsg m, ByteBuffer byteBuffer) throws ISOFieldException {
         if (logger.isDebugEnabled())
             logger.debug("unpack");
         int len = 0;
@@ -235,9 +236,14 @@ public abstract class ISOMsgBasePackager implements ISOMsgPackager {
                 ISOComponent<String> mti = fld[0].createComponent();
                 len += fld[0].unpack(mti, byteBuffer);
                 m.set(0, mti);
-                if (logger.isDebugEnabled())
-                    logger.debug("MTI={}", mti.getValue());
-
+//                String mtiValue = mti.getValue();
+//                if (logger.isDebugEnabled())
+//                    logger.debug("MTI={}", mtiValue);
+//                if (mtiValue.length() != 4)
+//                    throw new ISOFieldException(0, IIsoRejectCodes.InvalidMTI, "mti length must be 4");
+//                char version = mtiValue.charAt(0);
+//                if (version != '0' && version != '1' && version != '2')
+//                    throw new ISOFieldException(0, IIsoRejectCodes.InvalidMTI, "mti version is invalid");
             }
 
             BitSet bmap = null;
@@ -309,7 +315,7 @@ public abstract class ISOMsgBasePackager implements ISOMsgPackager {
                 } catch (Exception e) {
                     if (logger.isErrorEnabled())
                         logger.error("exception in unpack field id=" + i + " bitmap=" + bmap.toString(), e);
-                    throw new RuntimeException(e);
+                    throw new ISOFieldException(0, IIsoRejectCodes.InvalidIsoMsgField, e);
                 }
             } // for each field
 
@@ -370,14 +376,12 @@ public abstract class ISOMsgBasePackager implements ISOMsgPackager {
     }
 
     @Override
-    public int pack(ISOMsg m, ByteBuffer byteBuffer) {
-        m.setPackager(this);
+    public int pack(ISOMsg m, ByteBuffer byteBuffer) throws ISOFieldException {
         return pack(fld, thirdBitmapField, m, byteBuffer);
     }
 
     @Override
-    public int unpack(ISOMsg m, ByteBuffer byteBuffer) {
-        m.setPackager(this);
+    public int unpack(ISOMsg m, ByteBuffer byteBuffer) throws ISOFieldException {
         return unpack(fld, thirdBitmapField, isoComponentDumperMap, m, byteBuffer);
     }
 

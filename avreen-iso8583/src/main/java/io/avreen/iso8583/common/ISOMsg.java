@@ -2,7 +2,6 @@ package io.avreen.iso8583.common;
 
 import io.avreen.common.context.*;
 import io.avreen.common.netty.IMessageTypeSupplier;
-import io.avreen.iso8583.packager.api.ISOMsgPackager;
 import io.avreen.iso8583.util.DumpUtil;
 import io.avreen.iso8583.util.ISOUtil;
 
@@ -46,10 +45,7 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
      */
     protected byte[] trailer;
     private Integer rejectCode;
-    private transient byte[] rejectBuffer;
     private byte[] rawBuffer;
-    private transient ISOMsgPackager packager;
-
     private transient MsgContext<ISOMsg> msgContext;
 
     /**
@@ -94,24 +90,6 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
         return rejectCode != null;
     }
 
-    /**
-     * Get reject buffer byte [ ].
-     *
-     * @return the byte [ ]
-     */
-    public byte[] getRejectBuffer() {
-        return rejectBuffer;
-    }
-
-    /**
-     * Sets reject buffer.
-     *
-     * @param rejectBuffer the reject buffer
-     */
-    public void setRejectBuffer(byte[] rejectBuffer) {
-        this.rejectBuffer = rejectBuffer;
-    }
-
 
 //    public byte[] getRejectBuffer() {
 //        return rejectBuffer;
@@ -144,8 +122,9 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
      *
      * @param isoHeader the iso header
      */
-    public void setISOHeader(byte[] isoHeader) {
+    public ISOMsg setISOHeader(byte[] isoHeader) {
         this.isoHeader = isoHeader;
+        return this;
     }
 
 
@@ -163,8 +142,9 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
      *
      * @param trailer the trailer
      */
-    public void setTrailer(byte[] trailer) {
+    public ISOMsg setTrailer(byte[] trailer) {
         this.trailer = trailer;
+        return this;
     }
 
 
@@ -194,13 +174,14 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
      * @param fldno the fldno
      * @param c     the c
      */
-    public void set(int fldno, ISOComponent c) {
+    public ISOMsg set(int fldno, ISOComponent c) {
         if (c != null) {
             fields.put(fldno, c);
             if (fldno > maxField)
                 maxField = fldno;
             dirty = true;
         }
+        return this;
     }
 
     /**
@@ -209,20 +190,21 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
      * @param fldno the fldno
      * @param value the value
      */
-    public void set(int fldno, String value) {
+    public ISOMsg set(int fldno, String value) {
         if (value == null) {
             unset(fldno);
-            return;
+            return this;
         }
-        set(fldno, new ISOStringField(value));
+        return set(fldno, new ISOStringField(value));
+
     }
 
-    public void set(int fldno, Integer value) {
+    public ISOMsg set(int fldno, Integer value) {
         if (value == null) {
             unset(fldno);
-            return;
+            return this;
         }
-        set(fldno, new ISOStringField(value.toString()));
+        return set(fldno, new ISOStringField(value.toString()));
     }
 
 
@@ -232,7 +214,7 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
      * @param fpath the fpath
      * @param value the value
      */
-    public void set(String fpath, String value) {
+    public ISOMsg set(String fpath, String value) {
         StringTokenizer st = new StringTokenizer(fpath, ".");
         ISOMsg m = this;
         for (; ; ) {
@@ -259,6 +241,7 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
                 break;
             }
         }
+        return this;
     }
 
     /**
@@ -267,7 +250,7 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
      * @param fpath the fpath
      * @param c     the c
      */
-    public void set(String fpath, ISOComponent c) {
+    public ISOMsg set(String fpath, ISOComponent c) {
         StringTokenizer st = new StringTokenizer(fpath, ".");
         ISOMsg m = this;
         for (; ; ) {
@@ -292,6 +275,7 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
                 break;
             }
         }
+        return this;
     }
 
     /**
@@ -300,7 +284,7 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
      * @param fpath the fpath
      * @param value the value
      */
-    public void set(String fpath, byte[] value) {
+    public ISOMsg set(String fpath, byte[] value) {
         StringTokenizer st = new StringTokenizer(fpath, ".");
         ISOMsg m = this;
         for (; ; ) {
@@ -318,6 +302,7 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
                 break;
             }
         }
+        return this;
     }
 
     /**
@@ -326,15 +311,12 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
      * @param fldno the fldno
      * @param value the value
      */
-    public void set(int fldno, byte[] value) {
+    public ISOMsg set(int fldno, byte[] value) {
         if (value == null) {
             unset(fldno);
-            return;
+            return this;
         }
-
-
-        set(fldno, new ISOBinaryField(value));
-
+        return set(fldno, new ISOBinaryField(value));
     }
 
     /**
@@ -342,9 +324,10 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
      *
      * @param fldno the fldno
      */
-    public void unset(int fldno) {
+    public ISOMsg unset(int fldno) {
         if (fields.remove(fldno) != null)
             dirty = maxFieldDirty = true;
+        return this;
     }
 
     /**
@@ -352,9 +335,10 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
      *
      * @param flds the flds
      */
-    public void unset(int[] flds) {
+    public ISOMsg unset(int[] flds) {
         for (int fld : flds)
             unset(fld);
+        return this;
     }
 
     /**
@@ -362,7 +346,7 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
      *
      * @param fpath the fpath
      */
-    public void unset(String fpath) {
+    public ISOMsg unset(String fpath) {
         StringTokenizer st = new StringTokenizer(fpath, ".");
         ISOMsg m = this;
         ISOMsg lastm = m;
@@ -388,13 +372,16 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
                 break;
             }
         }
+        return this;
     }
 
     /**
      * Recalc bit map.
      */
-    public void recalcBitMap() {
-        recalcBitMap(1);
+    public ISOMsg recalcBitMap()
+    {
+        return recalcBitMap(1);
+
     }
 
     /**
@@ -402,11 +389,11 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
      *
      * @param bitmapIndex the bitmap index
      */
-    public void recalcBitMap(int bitmapIndex) {
+    public ISOMsg recalcBitMap(int bitmapIndex) {
         if (!dirty)
-            return;
+            return this;
         if (bitmapIndex < 0)
-            return;
+            return this;
         int mf = Math.min(getMaxField(), 192);
         BitSet bmap = new BitSet(mf + 62 >> 6 << 6);
         for (int i = bitmapIndex + 1; i <= mf; i++) {
@@ -417,6 +404,7 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
         }
         set(bitmapIndex, new ISOBitMap(bmap));
         dirty = false;
+        return this;
     }
 
     /**
@@ -434,45 +422,45 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
      * @param p      the p
      * @param indent the indent
      */
-    public void dump(PrintStream p, String indent) {
+    public ISOMsg dump(PrintStream p, String indent) {
         // ISOComponent c;
         p.println();
-        p.println(indent + "[");
+        p.println(indent + "{");
         String newIndent = indent + "   ";
         if (getISOHeader() != null) {
             String headerDump = DumpUtil.buildItem("header", ISOUtil.hexString(getISOHeader()));
-            p.print(newIndent + "{" + headerDump + "},");
+            p.print(newIndent +  headerDump + ",");
             p.println();
         }
         if (getCaptureTime() != null) {
             String dumpString = DumpUtil.buildItem("captureTime", getCaptureTime());
-            p.print(newIndent + "{" + dumpString + "},");
+            p.print(newIndent +  dumpString + ",");
             p.println();
         }
 
 
         if (!isReject()) {
+            p.println(newIndent +  "\"fields\":");
+            p.println(newIndent +  " [");
             int idx = 0;
             int count = fields.keySet().size();
             for (Integer i : fields.keySet()) {
                 ISOComponent c = fields.get(i);
                 ISOComponentDumper iValueDumper = DumpUtil.getIsoComponentDumper(c);
-                iValueDumper.dump(i, c, p, newIndent);
+                iValueDumper.dump(i, c, p, newIndent+"   ");
                 idx++;
                 if (idx < count)
                     p.print(",");
                 p.println();
             }
-
-
+            p.println(newIndent +  " ]");
         } else {
-            p.println(indent + "  {rejectCode:\"" + getRejectCode() + "\"}");
-            if (getRejectBuffer() != null) {
-                p.println(indent + "reject buffer dump:");
-                p.println(ISOUtil.hexdump(getRejectBuffer()));
-            }
+            String dumpString = DumpUtil.buildItem("rejectCode", getRejectCode());
+            p.print(newIndent +  dumpString );
+            p.println();
         }
-        p.println(indent + "]");
+        p.println(indent + "}");
+        return this;
     }
 
     /**
@@ -806,8 +794,8 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
      *
      * @param mti the mti
      */
-    public void setMTI(String mti) {
-        set(0, new ISOStringField(mti));
+    public ISOMsg setMTI(String mti) {
+        return set(0, new ISOStringField(mti));
     }
 
     /**
@@ -875,31 +863,11 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
     /**
      * Sets retransmission mti.
      */
-    public void setRetransmissionMTI() {
+    public ISOMsg setRetransmissionMTI() {
         if (!isRequest())
             throw new RuntimeException("not a request");
 
-        set(0, new ISOStringField(getMTI().substring(0, 3) + "1"));
-    }
-
-    /**
-     * Gets packager.
-     *
-     * @return the packager
-     */
-    public ISOMsgPackager getPackager() {
-        return packager;
-    }
-
-    /**
-     * Sets packager.
-     *
-     * @param packager the packager
-     * @return the packager
-     */
-    public ISOMsg setPackager(ISOMsgPackager packager) {
-        this.packager = packager;
-        return this;
+        return set(0, new ISOStringField(getMTI().substring(0, 3) + "1"));
     }
 
     public Long getCaptureTime() {

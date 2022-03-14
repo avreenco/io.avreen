@@ -13,7 +13,7 @@ public class ISONettyServerBuilder extends NettyServerBaseBuilder<ISONettyServer
     /**
      * Instantiates a new Iso netty server builder.
      */
-    protected ISONettyServerBuilder() {
+    public ISONettyServerBuilder() {
         super(new ISONettyServer());
     }
 
