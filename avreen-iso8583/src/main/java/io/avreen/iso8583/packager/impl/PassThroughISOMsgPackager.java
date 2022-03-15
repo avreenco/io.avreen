@@ -9,7 +9,7 @@ import java.nio.ByteBuffer;
 /**
  * The class Passthrough iso msg packager.
  */
-public class PassthroughISOMsgPackager extends ISOMsgBasePackager {
+public class PassThroughISOMsgPackager extends ISOMsgBasePackager {
     private ISOMsgPackager isoMsgPackager;
 
     /**
@@ -17,7 +17,7 @@ public class PassthroughISOMsgPackager extends ISOMsgBasePackager {
      *
      * @param isoMsgPackager the iso msg packager
      */
-    public PassthroughISOMsgPackager(ISOMsgPackager isoMsgPackager) {
+    public PassThroughISOMsgPackager(ISOMsgPackager isoMsgPackager) {
         this.isoMsgPackager = isoMsgPackager;
     }
 
