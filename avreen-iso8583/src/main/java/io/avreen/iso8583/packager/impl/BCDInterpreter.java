@@ -1,5 +1,6 @@
 package io.avreen.iso8583.packager.impl;
 
+import io.avreen.common.util.CodecUtil;
 import io.avreen.iso8583.packager.impl.base.CharacterBaseInterpreter;
 import io.avreen.iso8583.util.ISOUtil;
 
@@ -46,7 +47,7 @@ public class BCDInterpreter implements CharacterBaseInterpreter {
         dataLength = ((String) data).length();
         byte[] b = new byte[getPackedLength(dataLength)];
 
-        ISOUtil.str2bcd((String) data, leftPadded, b, 0);
+        CodecUtil.str2bcd((String) data, leftPadded, b, 0);
         // if (fPadded && !leftPadded && data.length()%2 == 1)
         //   b[b.length-1] |= (byte)(b[b.length-1] << 4) == 0 ? 0x0F : 0x00;
         int paddedSize = dataLength >> 1;
@@ -79,7 +80,7 @@ public class BCDInterpreter implements CharacterBaseInterpreter {
      * @return the string
      */
     public String uninterpret(byte[] b, int length) {
-        return ISOUtil.bcd2str(b, 0, length, leftPadded);
+        return CodecUtil.bcd2str(b, 0, length, leftPadded);
     }
 
     public int getPackedLength(int nDataUnits) {

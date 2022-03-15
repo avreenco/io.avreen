@@ -2,7 +2,7 @@ package io.avreen.iso8583.common;
 
 
 import io.avreen.common.IMessageKeyProvider;
-import io.avreen.iso8583.util.ISOUtil;
+import io.avreen.common.util.CodecUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -100,10 +100,10 @@ public class ISOMsgKeyProvider implements IMessageKeyProvider<ISOMsg> {
                     String vt = v.trim();
                     int l = m.getMTI().charAt(0) == '2' ? 12 : 6;
                     if (vt.length() < l)
-                        v = ISOUtil.zeroPad(vt, l);
+                        v = CodecUtil.zeroPad(vt, l);
                 }
                 if ("41".equals(f)) {
-                    v = ISOUtil.zeroPad(v.trim(), 16); // BIC ANSI to ISO hack
+                    v = CodecUtil.zeroPad(v.trim(), 16); // BIC ANSI to ISO hack
                 }
                 hasFields = true;
                 sb.append(v);
@@ -119,7 +119,7 @@ public class ISOMsgKeyProvider implements IMessageKeyProvider<ISOMsg> {
         StringBuilder sb = new StringBuilder();
         if (mti != null) {
             if (mti.length() < 4)
-                mti = ISOUtil.zeroPad(mti, 4);
+                mti = CodecUtil.zeroPad(mti, 4);
             if (mti.length() == 4) {
                 for (int i = 0; i < mtiMapping.length; i++) {
                     int c = mti.charAt(i) - '0';

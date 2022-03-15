@@ -38,7 +38,7 @@ public class TPDUBaseMsgProcessor implements IMsgProcessor<HeaderBodyObject> {
         HeaderBodyObject headerBodyObject = msg.getMsg();
         byte[] bytes = TPDUUtil.getDestinationAddress(headerBodyObject.getHeader());
         String hexString = CodecUtil.hexString(bytes);
-        hexString = CodecUtil.padleft(hexString, 4, '0');
+        hexString = CodecUtil.padLeft(hexString, 4, '0');
         IMsgProcessor<HeaderBodyObject> msgHandler = null;
         if (processMap != null) {
             if (processMap.containsKey(hexString))

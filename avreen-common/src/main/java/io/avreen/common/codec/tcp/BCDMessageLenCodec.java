@@ -38,7 +38,7 @@ public class BCDMessageLenCodec extends MessageLenCodecBase {
     public byte[] encodeMessageLength(int len) {
         checkLength(len);
 
-        return CodecUtil.str2bcd(CodecUtil.zeropad(Integer.toString(len), getLengthBytes() * 2), true);
+        return CodecUtil.str2bcd(CodecUtil.zeroPad(Integer.toString(len), getLengthBytes() * 2), true);
     }
 
     @Override

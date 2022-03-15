@@ -10,6 +10,7 @@ import io.avreen.common.codec.tcp.IMessageLenCodec;
 import io.avreen.common.context.MessageTypes;
 import io.avreen.common.context.MsgTracer;
 import io.avreen.common.log.LoggerDomain;
+import io.avreen.common.util.CodecUtil;
 import io.avreen.common.util.SystemPropUtil;
 import io.avreen.iso8583.common.ISOMsg;
 import io.avreen.iso8583.packager.api.ISOMsgPackager;
@@ -110,7 +111,7 @@ class ISOMsgEncoder {
                 byteBuffer.position(currentPosition);
                 byteBuffer.get(b);
                 if (debugBodyBuffer && logger.isDebugEnabled())
-                    logger.debug("encode body buffer={}", ISOUtil.hexString(b));
+                    logger.debug("encode body buffer={}", CodecUtil.hexString(b));
 
             }
 
@@ -121,7 +122,7 @@ class ISOMsgEncoder {
             logger.debug("total len encode={}", totalLen);
         byte[] lengthBytes = messageLenCodec.encodeMessageLength(pkgLen + headerLen);
         if (logger.isDebugEnabled())
-            logger.debug("len encode bytes={}", ISOUtil.hexString(lengthBytes));
+            logger.debug("len encode bytes={}", CodecUtil.hexString(lengthBytes));
 
         byteBuffer.put(lengthBytes);
         if (headerLen > 0) {
@@ -132,7 +133,7 @@ class ISOMsgEncoder {
                 mt = MessageTypes.Request;
             byte[] isoHeader = messageHeaderCodec.encodeHeader(m.getHeader(), mt, m.getRejectCode());
             if (logger.isDebugEnabled())
-                logger.debug("header encode bytes={}", ISOUtil.hexString(isoHeader));
+                logger.debug("header encode bytes={}", CodecUtil.hexString(isoHeader));
             if(dynamicHeaderCodec!=null)
             {
                 byte[] headerLenBytes = dynamicHeaderCodec.getHeaderLenCodec().encodeMessageLength(isoHeader.length);

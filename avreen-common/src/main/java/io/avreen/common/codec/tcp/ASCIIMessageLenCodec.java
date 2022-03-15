@@ -37,7 +37,7 @@ public class ASCIIMessageLenCodec extends MessageLenCodecBase {
     @Override
     public byte[] encodeMessageLength(int len) {
         checkLength(len);
-        return CodecUtil.zeropad(len, getLengthBytes()).getBytes();
+        return CodecUtil.zeroPad(len, getLengthBytes()).getBytes();
     }
 
 

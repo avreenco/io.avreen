@@ -38,7 +38,7 @@ public class HEXMessageLenCodec extends MessageLenCodecBase {
     public byte[] encodeMessageLength(int len) {
         checkLength(len);
         String hexString = Integer.toString(len, 16);
-        return CodecUtil.hex2byte(CodecUtil.zeropad(hexString, getLengthBytes() * 2));
+        return CodecUtil.hex2byte(CodecUtil.zeroPad(hexString, getLengthBytes() * 2));
     }
 
     @Override

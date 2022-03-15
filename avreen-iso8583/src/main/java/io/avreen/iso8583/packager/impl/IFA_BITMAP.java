@@ -1,6 +1,7 @@
 
 package io.avreen.iso8583.packager.impl;
 
+import io.avreen.common.util.CodecUtil;
 import io.avreen.iso8583.common.ISOBitMap;
 import io.avreen.iso8583.util.ISOUtil;
 
@@ -37,7 +38,7 @@ public class IFA_BITMAP extends ISOBitMapPackager {
         int len =
                 getLength() >= 8 ?
                         b.length() + 62 >> 6 << 3 : getLength();
-        byte[] ab = ISOUtil.hexString(ISOUtil.bitSet2byte(b, len)).getBytes();
+        byte[] ab = CodecUtil.hexString(ISOUtil.bitSet2byte(b, len)).getBytes();
         bytebuffer.put(ab);
         return ab.length;
 

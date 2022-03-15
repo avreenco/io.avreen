@@ -1,5 +1,6 @@
 package io.avreen.iso8583.common;
 
+import io.avreen.common.util.CodecUtil;
 import io.avreen.iso8583.util.ISOUtil;
 
 /**
@@ -43,6 +44,6 @@ public class ISOBinaryField
     }
 
     public String toString() {
-        return ISOUtil.hexString(value);
+        return CodecUtil.hexString(value);
     }
 }

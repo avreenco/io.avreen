@@ -2,6 +2,7 @@ package io.avreen.iso8583.common;
 
 import io.avreen.common.context.*;
 import io.avreen.common.netty.IMessageTypeSupplier;
+import io.avreen.common.util.CodecUtil;
 import io.avreen.iso8583.util.DumpUtil;
 import io.avreen.iso8583.util.ISOUtil;
 
@@ -219,7 +220,7 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
         p.println(indent + "{");
         String newIndent = indent + "   ";
         if (getHeader() != null) {
-            String headerDump = DumpUtil.buildItem("header", ISOUtil.hexString(getHeader()));
+            String headerDump = DumpUtil.buildItem("header", CodecUtil.hexString(getHeader()));
             p.print(newIndent + headerDump + ",");
             p.println();
         }
@@ -283,7 +284,7 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
             if (v instanceof String)
                 return (T) v;
             else if (v instanceof byte[])
-                return (T) ISOUtil.hexString((byte[]) v);
+                return (T) CodecUtil.hexString((byte[]) v);
             throw new RuntimeException("can not convert " + v.getClass() + " to String");
         } else if (valueClass == byte[].class) {
             if (v instanceof String)

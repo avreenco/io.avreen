@@ -236,16 +236,7 @@ public abstract class ISOMsgBasePackager implements ISOMsgPackager {
                 ISOComponent<String> mti = fld[0].createComponent();
                 len += fld[0].unpack(mti, byteBuffer);
                 m.set(0, mti);
-//                String mtiValue = mti.getValue();
-//                if (logger.isDebugEnabled())
-//                    logger.debug("MTI={}", mtiValue);
-//                if (mtiValue.length() != 4)
-//                    throw new ISOFieldException(0, IIsoRejectCodes.InvalidMTI, "mti length must be 4");
-//                char version = mtiValue.charAt(0);
-//                if (version != '0' && version != '1' && version != '2')
-//                    throw new ISOFieldException(0, IIsoRejectCodes.InvalidMTI, "mti version is invalid");
             }
-
             BitSet bmap = null;
             int bmapBytes = 0;                                   // bitmap length in bytes (usually 8, 16, 24)
             int maxField = fld.length - 1;                       // array length counts position 0!
@@ -384,25 +375,5 @@ public abstract class ISOMsgBasePackager implements ISOMsgPackager {
     public int unpack(ISOMsg m, ByteBuffer byteBuffer) throws ISOFieldException {
         return unpack(fld, thirdBitmapField, isoComponentDumperMap, m, byteBuffer);
     }
-
-    /**
-     * Gets iso component packager.
-     *
-     * @param fieldNumber the field number
-     * @return the iso component packager
-     */
-    public ISOComponentPackager getISOComponentPackager(int fieldNumber) {
-        return fld[fieldNumber];
-    }
-
-    /**
-     * Gets max valid field.
-     *
-     * @return the max valid field
-     */
-    protected int getMaxValidField() {
-        return 128;
-    }
-
 
 }

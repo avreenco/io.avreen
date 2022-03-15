@@ -1,6 +1,7 @@
 package io.avreen.examples.core.iso8583.common;
 
 
+import io.avreen.common.util.CodecUtil;
 import io.avreen.iso8583.common.ISOMsg;
 import io.avreen.iso8583.util.ISOUtil;
 
@@ -41,7 +42,7 @@ public class MessageCreator {
         .set(41, (trace * 100 + 1))
         .set(35, track2)
         .set(42, "HADI JAVAD")
-        .set(52, ISOUtil.hex2byte("1234567890123456"))
+        .set(52, CodecUtil.hex2byte("1234567890123456"))
         .set(63, "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890")
         ;
     }

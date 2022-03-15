@@ -2,6 +2,7 @@
 package io.avreen.iso8583.packager.impl;
 
 
+import io.avreen.common.util.CodecUtil;
 import io.avreen.iso8583.common.ISOBitMap;
 import io.avreen.iso8583.util.ISOUtil;
 
@@ -36,7 +37,7 @@ public class IFHex_BITMAP extends ISOBitMapPackager {
         BitSet bmap = c.getValue();
         int len = getLength();
         byte[] b = ISOUtil.bitSet2byte(bmap, len);
-        byte[] allBytes = ISOUtil.hexString(b).getBytes();
+        byte[] allBytes = CodecUtil.hexString(b).getBytes();
         byteBuffer.put(allBytes);
         return allBytes.length;
     }
@@ -46,7 +47,7 @@ public class IFHex_BITMAP extends ISOBitMapPackager {
         int len = getLength();
         byte[] bytes = new byte[len * 2];
         byteBuffer.get(bytes);
-        byte[] hexBytes = ISOUtil.hex2byte(new String(bytes));
+        byte[] hexBytes = CodecUtil.hex2byte(new String(bytes));
         int maxBits = len << 3;
         BitSet bmap = ISOUtil.byte2BitSet(ByteBuffer.wrap(hexBytes), maxBits);
         c.setValue(bmap);

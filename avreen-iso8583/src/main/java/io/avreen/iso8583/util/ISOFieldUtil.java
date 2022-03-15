@@ -1,6 +1,7 @@
 package io.avreen.iso8583.util;
 
 
+import io.avreen.common.util.CodecUtil;
 import io.avreen.iso8583.common.ISOMsg;
 import io.avreen.iso8583.packager.api.ISOComponentPackager;
 import io.avreen.iso8583.packager.impl.base.ISOMsgBasePackager;
@@ -60,7 +61,7 @@ public class ISOFieldUtil {
                 boolean isSame = Arrays.equals(isoMsg1.getBytes(f), isoMsg2.getBytes(f));
                 if (!isSame)
                     throw new ISOFieldException(f,
-                            IErrorCode.InvalidFieldFormat, "same field failed with protocol field=" + f + " compare value {" + ISOUtil.hexString(isoMsg1.getBytes(f)) + "," + ISOUtil.hexString(isoMsg2.getBytes(f)) + "}");
+                            IErrorCode.InvalidFieldFormat, "same field failed with protocol field=" + f + " compare value {" + CodecUtil.hexString(isoMsg1.getBytes(f)) + "," + CodecUtil.hexString(isoMsg2.getBytes(f)) + "}");
             }
         }
     }

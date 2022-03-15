@@ -3,6 +3,7 @@ package io.avreen.iso8583.util;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.avreen.common.util.CodecUtil;
 import io.avreen.iso8583.common.ISOComponent;
 import io.avreen.iso8583.common.ISOComponentDumper;
 import io.avreen.iso8583.common.ISOMsg;
@@ -109,7 +110,7 @@ public class ISOMsgLogUtil {
 
         if (isoMsg.getHeader() != null) {
             if (logHeader)
-                MsgLogUtil.dumpELKFormat(logMap, "header", ISOUtil.hexString(isoMsg.getHeader()));
+                MsgLogUtil.dumpELKFormat(logMap, "header", CodecUtil.hexString(isoMsg.getHeader()));
         }
 
 

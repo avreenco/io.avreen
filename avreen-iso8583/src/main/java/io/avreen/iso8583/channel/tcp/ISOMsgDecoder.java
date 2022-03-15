@@ -10,6 +10,7 @@ import io.avreen.common.codec.tcp.IMessageLenCodec;
 import io.avreen.common.codec.tcp.RejectCodeSupportCodec;
 import io.avreen.common.context.MsgTracer;
 import io.avreen.common.log.LoggerDomain;
+import io.avreen.common.util.CodecUtil;
 import io.avreen.common.util.SystemPropUtil;
 import io.avreen.iso8583.common.IIsoRejectCodes;
 import io.avreen.iso8583.common.ISOMsg;
@@ -101,10 +102,10 @@ class ISOMsgDecoder {
             int len = 0;
             try {
                 if (logger.isDebugEnabled())
-                    logger.debug("receive len bytes={}", ISOUtil.hexString(lenBytes));
+                    logger.debug("receive len bytes={}", CodecUtil.hexString(lenBytes));
                 len = messageLenCodec.decodeMessageLength(lenBytes);
                 if (logger.isDebugEnabled())
-                    logger.debug("len={}   bytes={}", len, ISOUtil.hexString(lenBytes));
+                    logger.debug("len={}   bytes={}", len, CodecUtil.hexString(lenBytes));
             } catch (Exception ex) {
                 if (logger.isErrorEnabled())
                     logger.error("invalid message len", ex);
@@ -164,7 +165,7 @@ class ISOMsgDecoder {
                 try {
                     if (debugBodyBuffer && logger.isDebugEnabled()) {
                         int position = byteBuffer.position();
-                        logger.debug("decode body buffer={}", ISOUtil.hexString(getRawBodyBuffer(byteBuffer)));
+                        logger.debug("decode body buffer={}", CodecUtil.hexString(getRawBodyBuffer(byteBuffer)));
                         byteBuffer.position(position);
                     }
                     this.isoPackager.unpack(isoMsg, byteBuffer);
