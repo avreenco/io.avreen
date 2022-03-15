@@ -100,10 +100,10 @@ public class ISOMsgKeyProvider implements IMessageKeyProvider<ISOMsg> {
                     String vt = v.trim();
                     int l = m.getMTI().charAt(0) == '2' ? 12 : 6;
                     if (vt.length() < l)
-                        v = ISOUtil.zeropad(vt, l);
+                        v = ISOUtil.zeroPad(vt, l);
                 }
                 if ("41".equals(f)) {
-                    v = ISOUtil.zeropad(v.trim(), 16); // BIC ANSI to ISO hack
+                    v = ISOUtil.zeroPad(v.trim(), 16); // BIC ANSI to ISO hack
                 }
                 hasFields = true;
                 sb.append(v);
@@ -119,7 +119,7 @@ public class ISOMsgKeyProvider implements IMessageKeyProvider<ISOMsg> {
         StringBuilder sb = new StringBuilder();
         if (mti != null) {
             if (mti.length() < 4)
-                mti = ISOUtil.zeropad(mti, 4);
+                mti = ISOUtil.zeroPad(mti, 4);
             if (mti.length() == 4) {
                 for (int i = 0; i < mtiMapping.length; i++) {
                     int c = mti.charAt(i) - '0';

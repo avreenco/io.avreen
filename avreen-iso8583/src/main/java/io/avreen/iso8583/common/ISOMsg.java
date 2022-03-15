@@ -8,6 +8,7 @@ import io.avreen.iso8583.util.ISOUtil;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -286,7 +287,7 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
             throw new RuntimeException("can not convert " + v.getClass() + " to String");
         } else if (valueClass == byte[].class) {
             if (v instanceof String)
-                return (T) ((String) v).getBytes(ISOUtil.CHARSET);
+                return (T) ((String) v).getBytes(StandardCharsets.ISO_8859_1);
             else if (v instanceof byte[])
                 return (T) v;
             throw new RuntimeException("can not convert " + v.getClass() + " to byte[]");
