@@ -42,7 +42,7 @@ public class DumpUtil {
      */
     public static void setIsoComponentDumper(ISOMsg isoMsg, ISOComponentDumper dumper, int... fieldNumbers) {
         for (int fieldNumber : fieldNumbers) {
-            ISOComponent isoComponent = isoMsg.getComponent(fieldNumber);
+            ISOComponent isoComponent = isoMsg.getIsoComponent(fieldNumber);
             if (isoComponent != null) {
                 setIsoComponentDumper(isoComponent, dumper);
             }
@@ -58,7 +58,7 @@ public class DumpUtil {
     public static void setIsoComponentDumper(ISOMsg isoMsg, Map<Integer, ISOComponentDumper> dumperMap) {
         Set<Integer> fieldNumbers = dumperMap.keySet();
         for (int fieldNumber : fieldNumbers) {
-            ISOComponent isoComponent = isoMsg.getComponent(fieldNumber);
+            ISOComponent isoComponent = isoMsg.getIsoComponent(fieldNumber);
             if (isoComponent != null) {
                 setIsoComponentDumper(isoComponent, dumperMap.get(fieldNumber));
             }

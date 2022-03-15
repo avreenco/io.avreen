@@ -71,7 +71,7 @@ class ISOMsgEncoder {
     protected void encode(ISOMsg m, ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, int maxMessageSize, boolean allocateDirect) throws Exception {
         if (messageLenCodec == null)
             throw new RuntimeException("message len codec is null");
-        m.recalcBitMap();
+        m.reCalcBitMap();
         if (m.getMsgContext() != null)
             MsgTracer.inject(m.getMsgContext().getTracer());
 
@@ -83,7 +83,7 @@ class ISOMsgEncoder {
         int headerLen = 0;
         IDynamicHeaderCodec dynamicHeaderCodec = null;
         if (messageHeaderCodec != null) {
-            headerLen = m.getISOHeader().length;
+            headerLen = m.getHeader().length;
             if (messageHeaderCodec instanceof IDynamicHeaderCodec) {
                 dynamicHeaderCodec = (IDynamicHeaderCodec) messageHeaderCodec;
                 headerLen += dynamicHeaderCodec.getHeaderLenCodec().getLengthBytes();
@@ -130,7 +130,7 @@ class ISOMsgEncoder {
                 mt = MessageTypes.Reject;
             else if (m.isRequest())
                 mt = MessageTypes.Request;
-            byte[] isoHeader = messageHeaderCodec.encodeHeader(m.getISOHeader(), mt, m.getRejectCode());
+            byte[] isoHeader = messageHeaderCodec.encodeHeader(m.getHeader(), mt, m.getRejectCode());
             if (logger.isDebugEnabled())
                 logger.debug("header encode bytes={}", ISOUtil.hexString(isoHeader));
             if(dynamicHeaderCodec!=null)

@@ -149,7 +149,7 @@ class ISOMsgDecoder {
 
             }
             ISOMsg isoMsg = isoPackager.createComponent();
-            isoMsg.setISOHeader(header);
+            isoMsg.setHeader(header);
             boolean rejectMessage = false;
             if (header != null) {
                 if (messageHeaderCodec instanceof RejectCodeSupportCodec) {

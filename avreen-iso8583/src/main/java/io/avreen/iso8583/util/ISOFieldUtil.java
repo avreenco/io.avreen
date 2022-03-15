@@ -21,8 +21,8 @@ public class ISOFieldUtil {
      */
     public static void echoField(ISOMsg request, ISOMsg response, int... echoFields) {
         for (int f : echoFields) {
-            if (request.hasField(f)) {
-                response.set(f, request.getComponent(f));
+            if (request.contains(f)) {
+                response.set(f, request.getIsoComponent(f));
             }
         }
     }
@@ -37,7 +37,7 @@ public class ISOFieldUtil {
     public static void checkMandatoryField(ISOMsg isoMsg, int... fields)
             throws ISOFieldException {
         for (int f : fields) {
-            if (!isoMsg.hasField(f)) {
+            if (!isoMsg.contains(f)) {
                 throw new ISOFieldException(f,
                         IErrorCode.MandatoryFieldNotExist, "required field with protocol field=" + f);
             }
@@ -56,7 +56,7 @@ public class ISOFieldUtil {
     public static void checkSame(ISOMsg isoMsg1, ISOMsg isoMsg2, int... fields)
             throws ISOFieldException {
         for (int f : fields) {
-            if (isoMsg1.hasField(f) && isoMsg2.hasField(f)) {
+            if (isoMsg1.contains(f) && isoMsg2.contains(f)) {
                 boolean isSame = Arrays.equals(isoMsg1.getBytes(f), isoMsg2.getBytes(f));
                 if (!isSame)
                     throw new ISOFieldException(f,
@@ -105,7 +105,7 @@ public class ISOFieldUtil {
     public static void checkNumericField(ISOMsg isoMsg, int... fields)
             throws ISOFieldException {
         for (int f : fields) {
-            if (isoMsg.hasField(f)) {
+            if (isoMsg.contains(f)) {
                 byte[] rawData;
                 rawData = isoMsg.getBytes(f);
                 for (int idx = 0; idx < rawData.length; idx++) {

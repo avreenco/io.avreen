@@ -87,8 +87,8 @@ public abstract class ISOMsgBasePackager implements ISOMsgPackager {
             byte[] hdr = null;
             int len = 0;
 
-            Map fields = m.getChildren();
-            ISOComponent c = (ISOComponent) fields.get(0);
+            Set<Integer> fields = m.fieldSet();
+            ISOComponent c = m.getIsoComponent(0);
             int first = getFirstField(fld);
 
 
@@ -101,7 +101,7 @@ public abstract class ISOMsgBasePackager implements ISOMsgPackager {
             if (emitBitMap(fld)) {   // The ISOComponent stores a single bitmap in field -1, which could be up to
                 // 192 bits long. If we have a thirdBitmapField, we may need to split the full
                 // bitmap into 1 & 2 at the beginning (16 bytes), and 3rd inside the Data Element
-                c = (ISOComponent) fields.get(getBitMapfieldIndex(fld));
+                c = (ISOComponent) m.getIsoComponent(getBitMapfieldIndex(fld));
                 bmap12 = (BitSet) c.getValue();               // the full bitmap (up to 192 bits long)
 
                 if (thirdBitmapField >= 0 &&                // we may need to split it!
@@ -117,14 +117,14 @@ public abstract class ISOMsgBasePackager implements ISOMsgPackager {
                         ISOBitMap bmField = new ISOBitMap();
                         bmField.setValue(bmap3);
                         m.set(thirdBitmapField, bmField);
-                        fields.put(thirdBitmapField, bmField);    // fields is a clone of m's inner map, so we store it here as well
+                        //fields.put(thirdBitmapField, bmField);    // fields is a clone of m's inner map, so we store it here as well
 
                         // bit65 should only be set if there's a data-containing DE-65 (which should't happen!)
-                        bmap12.set(65, fields.get(65) == null ? false : true);
+                        bmap12.set(65, m.getIsoComponent(65) == null ? false : true);
                     } else {   // else: No bits/fields above 128 in this message.
                         // In case there's an old (residual/garbage) field `thirdBitmapField` in the message
                         // we need to clear the bit and the data
-                        m.unset(thirdBitmapField);                // remove from ISOMsg
+                        m.remove(thirdBitmapField);                // remove from ISOMsg
                         bmap12.clear(thirdBitmapField);           // remove from inner bitmap
                         fields.remove(thirdBitmapField);          // remove from fields clone
                     }
@@ -137,10 +137,10 @@ public abstract class ISOMsgBasePackager implements ISOMsgPackager {
             // if Field 1 is a BitMap then we are packing an
             // ISO-8583 message so next field is fld#2.
             // else we are packing an ANSI X9.2 message, first field is 1
-            int tmpMaxField = Math.min(m.getMaxField(), (bmap3 != null || fld.length > 129) ? 192 : 128);
+            int tmpMaxField = Math.min(m.calcMaxField(), (bmap3 != null || fld.length > 129) ? 192 : 128);
 
             for (int i = first; i <= tmpMaxField; i++) {
-                if ((c = (ISOComponent) fields.get(i)) != null) {
+                if ((c = m.getIsoComponent(i)) != null) {
                     try {
                         ISOComponentPackager fp = fld[i];
                         if (fp == null)
@@ -306,7 +306,7 @@ public abstract class ISOMsgBasePackager implements ISOMsgPackager {
                             // but sometimes they specify some other DE (given by thirdBitmapField).
                             // We also double check that the DE has been specified as an ISOBitMapPackager in fld[].
                             // By now, the tertiary bitmap has already been unpacked into field `thirdBitmapField`.
-                            BitSet bs3rd = (BitSet) ((ISOComponent) m.getChildren().get(thirdBitmapField)).getValue();
+                            BitSet bs3rd = (BitSet) (m.getIsoComponent(thirdBitmapField)).getValue();
                             maxField = 128 + (bs3rd.length() - 1);                 // update loop end condition
                             for (int bit = 1; bit <= 64; bit++)
                                 bmap.set(bit + 128, bs3rd.get(bit));                // extend bmap with new bits above 128

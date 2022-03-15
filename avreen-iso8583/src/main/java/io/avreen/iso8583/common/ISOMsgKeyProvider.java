@@ -33,15 +33,15 @@ public class ISOMsgKeyProvider implements IMessageKeyProvider<ISOMsg> {
     /**
      * The Key.
      */
-    protected String[] key = new String[]{"41", "11"};
-    private Map<String, String[]> mtiKey = new HashMap<>();
+    protected Integer[] key = new Integer[]{41, 11};
+    private Map<String, Integer[]> mtiKey = new HashMap<>();
 
     /**
      * Instantiates a new Iso msg key provider.
      *
      * @param key the key
      */
-    public ISOMsgKeyProvider(String[] key) {
+    public ISOMsgKeyProvider(Integer[] key) {
         this.key = key;
     }
 
@@ -51,7 +51,7 @@ public class ISOMsgKeyProvider implements IMessageKeyProvider<ISOMsg> {
      *
      * @param mtiOverride the mti override
      */
-    public void setMtiOverride(Map<String, String[]> mtiOverride) {
+    public void setMtiOverride(Map<String, Integer[]> mtiOverride) {
         if (mtiOverride == null)
             return;
         mtiOverride.forEach((mti, keys) -> mtiKey.put(mapMTI(mti.trim()), keys));
@@ -68,7 +68,7 @@ public class ISOMsgKeyProvider implements IMessageKeyProvider<ISOMsg> {
      *
      * @return the string [ ]
      */
-    public String[] getKey() {
+    public Integer[] getKey() {
         return key;
     }
 
@@ -77,7 +77,7 @@ public class ISOMsgKeyProvider implements IMessageKeyProvider<ISOMsg> {
      *
      * @param key the key
      */
-    public void setKey(String[] key) {
+    public void setKey(Integer[] key) {
         this.key = key;
     }
 
@@ -92,8 +92,8 @@ public class ISOMsgKeyProvider implements IMessageKeyProvider<ISOMsg> {
 //            sb.append('.');
 //        }
         boolean hasFields = false;
-        String[] k = mtiKey.getOrDefault(mapMTI, key);
-        for (String f : k) {
+        Integer[] k = mtiKey.getOrDefault(mapMTI, key);
+        for (Integer f : k) {
             String v = m.getString(f);
             if (v != null) {
                 if ("11".equals(f)) {

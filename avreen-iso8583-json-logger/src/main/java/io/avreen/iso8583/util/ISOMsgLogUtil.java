@@ -107,15 +107,14 @@ public class ISOMsgLogUtil {
         }
 
 
-        if (isoMsg.getISOHeader() != null) {
+        if (isoMsg.getHeader() != null) {
             if (logHeader)
-                MsgLogUtil.dumpELKFormat(logMap, "header", ISOUtil.hexString(isoMsg.getISOHeader()));
+                MsgLogUtil.dumpELKFormat(logMap, "header", ISOUtil.hexString(isoMsg.getHeader()));
         }
 
 
         if (!isoMsg.isReject()) {
-            Map map = isoMsg.getChildren();
-            Set fieldSet = map.keySet();
+            Set fieldSet = isoMsg.fieldSet();
             if (includeField != null && includeField.size() > 0)
                 fieldSet = includeField;
 
@@ -124,13 +123,11 @@ public class ISOMsgLogUtil {
                 int fieldNo = (int) fno;
                 if (excludeField != null && excludeField.contains(fieldNo))
                     continue;
-                if (!isoMsg.hasField(fieldNo))
+                if (!isoMsg.contains(fieldNo))
                     continue;
-                ISOComponent isoComponent = isoMsg.getComponent(fieldNo);
+                ISOComponent isoComponent = isoMsg.getIsoComponent(fieldNo);
                 if (isoComponent.getValue() == null)
                     continue;
-
-                StringBuilder stringBuilder = new StringBuilder();
                 String  key = "i"+fno;
                 ISOComponentDumper isoComponentDumper = DumpUtil.getIsoComponentDumper(isoComponent);
                 Object valueString = isoComponentDumper.convertToString(isoComponent);
@@ -147,7 +144,7 @@ public class ISOMsgLogUtil {
             return;
         ArrayList<String> msgField = new ArrayList<>();
         for (Integer f : messageTraceField) {
-            if (isoMsg.hasField(f)) {
+            if (isoMsg.contains(f)) {
                 if (isoMsg.getString(f) != null)
                     msgField.add(isoMsg.getString(f));
             }

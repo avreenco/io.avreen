@@ -34,15 +34,15 @@ public class server_example0 {
                 .idleTime(Duration.ofSeconds(10))
                 .port(6012).processor(new SampleRequestISOMsgProcessor()).build().start();
 
-        new ISONettyServerBuilder()
-                .messageLenCodec(new ASCIIMessageLenCodec())
-                .isoPackager(new ISO87APackager())
-                .idleTime(Duration.ofSeconds(10))
-                .port(6012).processor((channelHandlerContext, msg) -> {
-                    ISOMsg resp_msg = msg.getMsg();
-                    resp_msg.setResponseMTI();
-                    channelHandlerContext.writeAndFlush(resp_msg);
-                }).build().start();
+//        new ISONettyServerBuilder()
+//                .messageLenCodec(new ASCIIMessageLenCodec())
+//                .isoPackager(new ISO87APackager())
+//                .idleTime(Duration.ofSeconds(10))
+//                .port(6012).processor((channelHandlerContext, msg) -> {
+//                    ISOMsg resp_msg = msg.getMsg();
+//                    resp_msg.setResponseMTI();
+//                    channelHandlerContext.writeAndFlush(resp_msg);
+//                }).build().start();
 
 
     }

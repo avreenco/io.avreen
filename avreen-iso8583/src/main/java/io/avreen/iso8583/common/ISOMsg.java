@@ -9,9 +9,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.BitSet;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.StringTokenizer;
-import java.util.TreeMap;
+import java.util.Set;
 
 /**
  * The class Iso msg.
@@ -19,31 +19,15 @@ import java.util.TreeMap;
 public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IRejectSupportObject, Serializable, IMsgContextAware<ISOMsg>, ICaptureTimeSupportObject,
         IMessageTypeSupplier {
     /**
-     * The Fields.
+     * The FieldsMap.
      */
-    protected Map<Integer, ISOComponent> fields;
-    /**
-     * The Max field.
-     */
-    protected transient int maxField;
-    /**
-     * The Dirty.
-     */
-    protected transient boolean dirty,
-    /**
-     * The Max field dirty.
-     */
-    maxFieldDirty;
+    protected Map<Integer, ISOComponent> fieldMap = new HashMap<>();
     /**
      * The Iso header.
      */
-    protected byte[] isoHeader = null;
+    protected byte[] header = null;
 
     private Long captureTime;
-    /**
-     * The Trailer.
-     */
-    protected byte[] trailer;
     private Integer rejectCode;
     private byte[] rawBuffer;
     private transient MsgContext<ISOMsg> msgContext;
@@ -52,12 +36,6 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
      * Instantiates a new Iso msg.
      */
     public ISOMsg() {
-        fields = new TreeMap();
-        maxField = -1;
-        dirty = true;
-        maxFieldDirty = true;
-        isoHeader = null;
-        trailer = null;
     }
 
     /**
@@ -91,81 +69,33 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
     }
 
 
-//    public byte[] getRejectBuffer() {
-//        return rejectBuffer;
-//    }
-//
-//    public void setRejectBuffer(byte[] rejectBuffer) {
-//        this.rejectBuffer = rejectBuffer;
-//    }
-//
-//    public int getRejectCode() {
-//        return rejectCode;
-//    }
-//
-//    public void setRejectCode(int rejectCode) {
-//        this.rejectCode = rejectCode;
-//    }
-
-
     /**
      * Get iso header byte [ ].
      *
      * @return the byte [ ]
      */
-    public byte[] getISOHeader() {
-        return isoHeader;
+    public byte[] getHeader() {
+        return header;
     }
 
     /**
      * Sets iso header.
      *
-     * @param isoHeader the iso header
+     * @param header the iso header
      */
-    public ISOMsg setISOHeader(byte[] isoHeader) {
-        this.isoHeader = isoHeader;
+    public ISOMsg setHeader(byte[] header) {
+        this.header = header;
         return this;
     }
 
 
-    /**
-     * Get trailer byte [ ].
-     *
-     * @return the byte [ ]
-     */
-    public byte[] getTrailer() {
-        return this.trailer;
-    }
-
-    /**
-     * Sets trailer.
-     *
-     * @param trailer the trailer
-     */
-    public ISOMsg setTrailer(byte[] trailer) {
-        this.trailer = trailer;
-        return this;
-    }
-
-
-    /**
-     * Gets max field.
-     *
-     * @return the max field
-     */
-    public int getMaxField() {
-        if (maxFieldDirty)
-            recalcMaxField();
-        return maxField;
-    }
-
-    private void recalcMaxField() {
-        maxField = 0;
-        for (Object obj : fields.keySet()) {
+    public int calcMaxField() {
+        int maxField = 0;
+        for (Object obj : fieldMap.keySet()) {
             if (obj instanceof Integer)
                 maxField = Math.max(maxField, ((Integer) obj).intValue());
         }
-        maxFieldDirty = false;
+        return maxField;
     }
 
     /**
@@ -176,10 +106,7 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
      */
     public ISOMsg set(int fldno, ISOComponent c) {
         if (c != null) {
-            fields.put(fldno, c);
-            if (fldno > maxField)
-                maxField = fldno;
-            dirty = true;
+            fieldMap.put(fldno, c);
         }
         return this;
     }
@@ -192,7 +119,7 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
      */
     public ISOMsg set(int fldno, String value) {
         if (value == null) {
-            unset(fldno);
+            remove(fldno);
             return this;
         }
         return set(fldno, new ISOStringField(value));
@@ -201,108 +128,10 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
 
     public ISOMsg set(int fldno, Integer value) {
         if (value == null) {
-            unset(fldno);
+            remove(fldno);
             return this;
         }
         return set(fldno, new ISOStringField(value.toString()));
-    }
-
-
-    /**
-     * Set.
-     *
-     * @param fpath the fpath
-     * @param value the value
-     */
-    public ISOMsg set(String fpath, String value) {
-        StringTokenizer st = new StringTokenizer(fpath, ".");
-        ISOMsg m = this;
-        for (; ; ) {
-            int fldno = Integer.parseInt(st.nextToken());
-            if (st.hasMoreTokens()) {
-                Object obj = m.getValue(fldno);
-                if (obj instanceof ISOMsg)
-                    m = (ISOMsg) obj;
-                else
-                /**
-                 * we need to go deeper, however, if the value == null then
-                 * there is nothing to do (unset) at the lower levels, so break now and save some processing.
-                 */
-                    if (value == null) {
-                        break;
-                    } else {
-
-                        // We have a value to set, so adding a level to hold it is sensible.
-                        m.set(fldno, m = new ISOMsg());
-
-                    }
-            } else {
-                m.set(fldno, value);
-                break;
-            }
-        }
-        return this;
-    }
-
-    /**
-     * Set.
-     *
-     * @param fpath the fpath
-     * @param c     the c
-     */
-    public ISOMsg set(String fpath, ISOComponent c) {
-        StringTokenizer st = new StringTokenizer(fpath, ".");
-        ISOMsg m = this;
-        for (; ; ) {
-            int fldno = Integer.parseInt(st.nextToken());
-            if (st.hasMoreTokens()) {
-                Object obj = m.getValue(fldno);
-                if (obj instanceof ISOMsg)
-                    m = (ISOMsg) obj;
-                else
-                    /*
-                     * we need to go deeper, however, if the value == null then
-                     * there is nothing to do (unset) at the lower levels, so break now and save some processing.
-                     */
-                    if (c == null) {
-                        break;
-                    } else {
-                        // We have a value to set, so adding a level to hold it is sensible.
-                        m.set(fldno, m = new ISOMsg());
-                    }
-            } else {
-                m.set(fldno, c);
-                break;
-            }
-        }
-        return this;
-    }
-
-    /**
-     * Set.
-     *
-     * @param fpath the fpath
-     * @param value the value
-     */
-    public ISOMsg set(String fpath, byte[] value) {
-        StringTokenizer st = new StringTokenizer(fpath, ".");
-        ISOMsg m = this;
-        for (; ; ) {
-            int fldno = Integer.parseInt(st.nextToken());
-            if (st.hasMoreTokens()) {
-                Object obj = m.getValue(fldno);
-                if (obj instanceof ISOMsg)
-                    m = (ISOMsg) obj;
-                else
-
-                    m.set(fldno, m = new ISOMsg());
-
-            } else {
-                m.set(fldno, value);
-                break;
-            }
-        }
-        return this;
     }
 
     /**
@@ -313,7 +142,7 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
      */
     public ISOMsg set(int fldno, byte[] value) {
         if (value == null) {
-            unset(fldno);
+            remove(fldno);
             return this;
         }
         return set(fldno, new ISOBinaryField(value));
@@ -324,9 +153,8 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
      *
      * @param fldno the fldno
      */
-    public ISOMsg unset(int fldno) {
-        if (fields.remove(fldno) != null)
-            dirty = maxFieldDirty = true;
+    public ISOMsg remove(int fldno) {
+        fieldMap.remove(fldno);
         return this;
     }
 
@@ -335,52 +163,17 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
      *
      * @param flds the flds
      */
-    public ISOMsg unset(int[] flds) {
+    public ISOMsg remove(int[] flds) {
         for (int fld : flds)
-            unset(fld);
-        return this;
-    }
-
-    /**
-     * Unset.
-     *
-     * @param fpath the fpath
-     */
-    public ISOMsg unset(String fpath) {
-        StringTokenizer st = new StringTokenizer(fpath, ".");
-        ISOMsg m = this;
-        ISOMsg lastm = m;
-        int fldno = -1;
-        int lastfldno;
-        for (; ; ) {
-            lastfldno = fldno;
-            fldno = Integer.parseInt(st.nextToken());
-            if (st.hasMoreTokens()) {
-                Object obj = m.getValue(fldno);
-                if (obj instanceof ISOMsg) {
-                    lastm = m;
-                    m = (ISOMsg) obj;
-                } else {
-                    // No real way of unset further subfield, exit.
-                    break;
-                }
-            } else {
-                m.unset(fldno);
-                if (!m.hasFields() && lastfldno != -1) {
-                    lastm.unset(lastfldno);
-                }
-                break;
-            }
-        }
+            remove(fld);
         return this;
     }
 
     /**
      * Recalc bit map.
      */
-    public ISOMsg recalcBitMap()
-    {
-        return recalcBitMap(1);
+    public ISOMsg reCalcBitMap() {
+        return reCalcBitMap(1);
 
     }
 
@@ -389,21 +182,18 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
      *
      * @param bitmapIndex the bitmap index
      */
-    public ISOMsg recalcBitMap(int bitmapIndex) {
-        if (!dirty)
-            return this;
+    public ISOMsg reCalcBitMap(int bitmapIndex) {
         if (bitmapIndex < 0)
             return this;
-        int mf = Math.min(getMaxField(), 192);
+        int mf = Math.min(calcMaxField(), 192);
         BitSet bmap = new BitSet(mf + 62 >> 6 << 6);
         for (int i = bitmapIndex + 1; i <= mf; i++) {
-            ISOComponent isoComponent = fields.get(i);
+            ISOComponent isoComponent = fieldMap.get(i);
             if (isoComponent != null)
                 bmap.set(i);
 
         }
         set(bitmapIndex, new ISOBitMap(bmap));
-        dirty = false;
         return this;
     }
 
@@ -412,8 +202,8 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
      *
      * @return the children
      */
-    public Map<Integer, ISOComponent> getChildren() {
-        return (Map) ((TreeMap) fields).clone();
+    public Set<Integer> fieldSet() {
+        return fieldMap.keySet();
     }
 
     /**
@@ -427,36 +217,36 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
         p.println();
         p.println(indent + "{");
         String newIndent = indent + "   ";
-        if (getISOHeader() != null) {
-            String headerDump = DumpUtil.buildItem("header", ISOUtil.hexString(getISOHeader()));
-            p.print(newIndent +  headerDump + ",");
+        if (getHeader() != null) {
+            String headerDump = DumpUtil.buildItem("header", ISOUtil.hexString(getHeader()));
+            p.print(newIndent + headerDump + ",");
             p.println();
         }
         if (getCaptureTime() != null) {
             String dumpString = DumpUtil.buildItem("captureTime", getCaptureTime());
-            p.print(newIndent +  dumpString + ",");
+            p.print(newIndent + dumpString + ",");
             p.println();
         }
 
 
         if (!isReject()) {
-            p.println(newIndent +  "\"fields\":");
-            p.println(newIndent +  " [");
+            p.println(newIndent + "\"fields\":");
+            p.println(newIndent + " [");
             int idx = 0;
-            int count = fields.keySet().size();
-            for (Integer i : fields.keySet()) {
-                ISOComponent c = fields.get(i);
+            int count = fieldMap.keySet().size();
+            for (Integer i : fieldMap.keySet()) {
+                ISOComponent c = fieldMap.get(i);
                 ISOComponentDumper iValueDumper = DumpUtil.getIsoComponentDumper(c);
-                iValueDumper.dump(i, c, p, newIndent+"   ");
+                iValueDumper.dump(i, c, p, newIndent + "   ");
                 idx++;
                 if (idx < count)
                     p.print(",");
                 p.println();
             }
-            p.println(newIndent +  " ]");
+            p.println(newIndent + " ]");
         } else {
             String dumpString = DumpUtil.buildItem("rejectCode", getRejectCode());
-            p.print(newIndent +  dumpString );
+            p.print(newIndent + dumpString);
             p.println();
         }
         p.println(indent + "}");
@@ -466,224 +256,72 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
     /**
      * Gets component.
      *
-     * @param fldno the fldno
+     * @param idx the field no
      * @return the component
      */
-    public ISOComponent getComponent(int fldno) {
-        return fields.get(fldno);
+    public ISOComponent getIsoComponent(int idx) {
+        return get(idx, ISOComponent.class);
     }
 
     /**
      * Gets value.
      *
-     * @param fldno the fldno
+     * @param idx the fldno
      * @return the value
      */
-    public Object getValue(int fldno) {
-        ISOComponent c = getComponent(fldno);
-
-        return c != null ? c.getValue() : null;
-
-    }
-
-    /**
-     * Gets value.
-     *
-     * @param fpath the fpath
-     * @return the value
-     */
-    public Object getValue(String fpath) {
-        StringTokenizer st = new StringTokenizer(fpath, ".");
-        ISOMsg m = this;
-        Object obj;
-        for (; ; ) {
-            int fldno = Integer.parseInt(st.nextToken());
-            obj = m.getValue(fldno);
-            if (obj == null) {
-                // The user will always get a null value for an incorrect path or path not present in the message
-                // no point having the  thrown for fields that were not received.
-                break;
-            }
-            if (st.hasMoreTokens()) {
-                if (obj instanceof ISOMsg) {
-                    m = (ISOMsg) obj;
-                } else
-                    throw new RuntimeException("Invalid path '" + fpath + "'");
-            } else
-                break;
+    public <T> T get(int idx, Class<T> valueClass) {
+        if (!fieldMap.containsKey(idx))
+            return null;
+        ISOComponent c = fieldMap.get(idx);
+        if (ISOComponent.class.isAssignableFrom(valueClass))
+            return (T) c;
+        Object v = c.getValue();
+        if (v == null)
+            return null;
+        if (valueClass == String.class) {
+            if (v instanceof String)
+                return (T) v;
+            else if (v instanceof byte[])
+                return (T) ISOUtil.hexString((byte[]) v);
+            throw new RuntimeException("can not convert " + v.getClass() + " to String");
+        } else if (valueClass == byte[].class) {
+            if (v instanceof String)
+                return (T) ((String) v).getBytes(ISOUtil.CHARSET);
+            else if (v instanceof byte[])
+                return (T) v;
+            throw new RuntimeException("can not convert " + v.getClass() + " to byte[]");
         }
-        return obj;
-    }
-
-    /**
-     * Gets component.
-     *
-     * @param fpath the fpath
-     * @return the component
-     */
-    public ISOComponent getComponent(String fpath) {
-        StringTokenizer st = new StringTokenizer(fpath, ".");
-        ISOMsg m = this;
-        ISOComponent obj;
-        for (; ; ) {
-            int fldno = Integer.parseInt(st.nextToken());
-            obj = m.getComponent(fldno);
-            if (st.hasMoreTokens()) {
-                if (obj instanceof ISOMsg) {
-                    m = (ISOMsg) obj;
-                } else
-                    break; // 'Quick' exit if hierachy is not present.
-            } else
-                break;
-        }
-        return obj;
+        throw new RuntimeException("not support value class= " + valueClass);
     }
 
     /**
      * Gets string.
      *
-     * @param fldno the fldno
+     * @param idx the field no
      * @return the string
      */
-    public String getString(int fldno) {
-        String s = null;
-        if (hasField(fldno)) {
-            Object obj = getValue(fldno);
-            if (obj instanceof String)
-                s = (String) obj;
-            else if (obj instanceof byte[])
-                s = ISOUtil.hexString((byte[]) obj);
-        }
-        return s;
-    }
-
-
-    /**
-     * Gets string.
-     *
-     * @param fpath the fpath
-     * @return the string
-     */
-    public String getString(String fpath) {
-        String s = null;
-
-        Object obj = getValue(fpath);
-        if (obj instanceof String)
-            s = (String) obj;
-        else if (obj instanceof byte[])
-            s = ISOUtil.hexString((byte[]) obj);
-
-        return s;
+    public String getString(int idx) {
+        return get(idx, String.class);
     }
 
     /**
      * Get bytes byte [ ].
      *
-     * @param fldno the fldno
+     * @param idx the fldno
      * @return the byte [ ]
      */
-    public byte[] getBytes(int fldno) {
-        byte[] b = null;
-        if (hasField(fldno)) {
-            Object obj = getValue(fldno);
-            if (obj instanceof String)
-                b = ((String) obj).getBytes(ISOUtil.CHARSET);
-            else if (obj instanceof byte[])
-                b = (byte[]) obj;
-        }
-        return b;
-    }
-
-    /**
-     * Get bytes byte [ ].
-     *
-     * @param fpath the fpath
-     * @return the byte [ ]
-     */
-    public byte[] getBytes(String fpath) {
-        byte[] b = null;
-
-        Object obj = getValue(fpath);
-        if (obj instanceof String)
-            b = ((String) obj).getBytes(ISOUtil.CHARSET);
-        else if (obj instanceof byte[])
-            b = (byte[]) obj;
-
-        return b;
+    public byte[] getBytes(int idx) {
+        return get(idx, byte[].class);
     }
 
     /**
      * Has field boolean.
      *
-     * @param fldno the fldno
+     * @param idx the field no
      * @return the boolean
      */
-    public boolean hasField(int fldno) {
-        return fields.get(fldno) != null;
-    }
-
-    /**
-     * Has fields boolean.
-     *
-     * @param fields the fields
-     * @return the boolean
-     */
-    public boolean hasFields(int[] fields) {
-        for (int field : fields)
-            if (!hasField(field))
-                return false;
-        return true;
-    }
-
-    /**
-     * Has any boolean.
-     *
-     * @param fields the fields
-     * @return the boolean
-     */
-    public boolean hasAny(int[] fields) {
-        for (int field : fields)
-            if (hasField(field))
-                return true;
-        return false;
-    }
-
-    /**
-     * Has any boolean.
-     *
-     * @param fields the fields
-     * @return the boolean
-     */
-    public boolean hasAny(String... fields) {
-        for (String field : fields)
-            if (hasField(field))
-                return true;
-        return false;
-    }
-
-    /**
-     * Has field boolean.
-     *
-     * @param fpath the fpath
-     * @return the boolean
-     */
-    public boolean hasField(String fpath) {
-        StringTokenizer st = new StringTokenizer(fpath, ".");
-        ISOMsg m = this;
-        for (; ; ) {
-            int fldno = Integer.parseInt(st.nextToken());
-            if (st.hasMoreTokens()) {
-                Object obj = m.getValue(fldno);
-                if (obj instanceof ISOMsg) {
-                    m = (ISOMsg) obj;
-                } else {
-                    // No real way of checking for further subfields, return false, perhaps should be ?
-                    return false;
-                }
-            } else {
-                return m.hasField(fldno);
-            }
-        }
+    public boolean contains(int idx) {
+        return fieldMap.get(idx) != null;
     }
 
     /**
@@ -691,8 +329,8 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
      *
      * @return the boolean
      */
-    public boolean hasFields() {
-        return !fields.isEmpty();
+    public boolean isEmpty() {
+        return fieldMap.isEmpty();
     }
 
     @Override
@@ -700,61 +338,20 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
         try {
             ISOMsg m = (ISOMsg) super.clone();
             m.setRawBuffer(null);
-            m.setISOHeader(getISOHeader());
-
-            m.fields = (TreeMap) ((TreeMap) fields).clone();
-            if (isoHeader != null)
-                m.isoHeader = isoHeader;
-            if (trailer != null)
-                m.trailer = trailer.clone();
-            for (Integer k : fields.keySet()) {
-                ISOComponent c = (ISOComponent) m.fields.get(k);
+            m.setHeader(getHeader());
+            m.fieldMap = (HashMap) ((HashMap) fieldMap).clone();
+            if (header != null)
+                m.header = header;
+            for (Integer k : fieldMap.keySet()) {
+                ISOComponent c = (ISOComponent) m.fieldMap.get(k);
 //                setOriginalFieldValue(k, null);
                 if (c instanceof ISOMsg)
-                    m.fields.put(k, (ISOMsg) ((ISOMsg) c).clone());
+                    m.fieldMap.put(k, (ISOMsg) ((ISOMsg) c).clone());
             }
             return m;
         } catch (CloneNotSupportedException e) {
             throw new InternalError();
         }
-    }
-
-    /**
-     * Clone object.
-     *
-     * @param fields the fields
-     * @return the object
-     */
-    @SuppressWarnings("PMD.EmptyCatchBlock")
-    public Object clone(int[] fields) {
-        try {
-            ISOMsg m = (ISOMsg) super.clone();
-            m.fields = new TreeMap();
-            for (int field : fields) {
-                if (hasField(field)) {
-
-                    m.set(field, getComponent(field));
-
-                }
-            }
-            return m;
-        } catch (CloneNotSupportedException e) {
-            throw new InternalError();
-        }
-    }
-
-    /**
-     * Merge.
-     *
-     * @param m the m
-     */
-    @SuppressWarnings("PMD.EmptyCatchBlock")
-    public void merge(ISOMsg m) {
-        for (int i = 0; i <= m.getMaxField(); i++)
-
-            if (m.hasField(i))
-                set(i, m.getComponent(i));
-
     }
 
     @Override
@@ -784,9 +381,9 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
      * @return the mti
      */
     public String getMTI() {
-        if (!hasField(0))
+        if (!contains(0))
             throw new RuntimeException("MTI not available");
-        return (String) getValue(0);
+        return getString(0);
     }
 
     /**
@@ -835,26 +432,10 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
         if (!isRequest())
             return this;
         String mti = getMTI();
-        char c1 = mti.charAt(3);
-        char c2 = '0';
-        switch (c1) {
-            case '0':
-            case '1':
-                c2 = '0';
-                break;
-            case '2':
-            case '3':
-                c2 = '2';
-                break;
-            case '4':
-            case '5':
-                c2 = '4';
-                break;
-
-        }
+        char lastChar = mti.charAt(3);
         set(0, new ISOStringField(
                         mti.substring(0, 2)
-                                + (Character.getNumericValue(getMTI().charAt(2)) + 1) + c2
+                                + (Character.getNumericValue(getMTI().charAt(2)) + 1) + lastChar
                 )
         );
         return this;
@@ -865,7 +446,7 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
      */
     public ISOMsg setRetransmissionMTI() {
         if (!isRequest())
-            throw new RuntimeException("not a request");
+            throw new RuntimeException("iso message not a request");
 
         return set(0, new ISOStringField(getMTI().substring(0, 3) + "1"));
     }

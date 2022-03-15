@@ -56,7 +56,7 @@ public class MessageCreator {
         ISOMsg m = (ISOMsg) request.clone();
         m.setResponseMTI()
         .set(39, "00")
-        .unset(35);
+        .remove(35);
         return m;
     }
 
