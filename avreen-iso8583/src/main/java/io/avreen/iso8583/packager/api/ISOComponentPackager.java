@@ -23,9 +23,8 @@ public interface ISOComponentPackager<C extends ISOComponent> {
      *
      * @param isoComponent the iso component
      * @param byteBuffer   the byte buffer
-     * @return the int
      */
-    int pack(C isoComponent, ByteBuffer byteBuffer);
+    void pack(C isoComponent, ByteBuffer byteBuffer);
 
     /**
      * Unpack int.
@@ -34,7 +33,7 @@ public interface ISOComponentPackager<C extends ISOComponent> {
      * @param byteBuffer   the byte buffer
      * @return the int
      */
-    int unpack(C isoComponent, ByteBuffer byteBuffer);
+    void unpack(C isoComponent, ByteBuffer byteBuffer);
 
 
 }

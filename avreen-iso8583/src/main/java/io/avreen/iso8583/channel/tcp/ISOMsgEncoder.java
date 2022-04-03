@@ -100,9 +100,10 @@ class ISOMsgEncoder {
 
         byteBuffer.position(messageLenCodec.getLengthBytes() + headerLen);
 
-        int pkgLen = 0;
+
         int currentPosition = byteBuffer.position();
-        pkgLen = isoPackager.pack(m, byteBuffer);
+        isoPackager.pack(m, byteBuffer);
+        int pkgLen = byteBuffer.position()-currentPosition;
         if (logger.isDebugEnabled())
             logger.debug("body total bytes={}", pkgLen);
         if (logger.isDebugEnabled()) {

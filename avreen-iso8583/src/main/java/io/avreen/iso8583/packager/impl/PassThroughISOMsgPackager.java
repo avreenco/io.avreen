@@ -22,18 +22,17 @@ public class PassThroughISOMsgPackager extends ISOMsgBasePackager {
     }
 
     @Override
-    public int pack(ISOMsg m, ByteBuffer byteBuffer) {
+    public void pack(ISOMsg m, ByteBuffer byteBuffer) {
         if (m.getRawBuffer() != null) {
             byte[] allBytes = m.getRawBuffer();
             byteBuffer.put(allBytes);
-            return allBytes.length;
         } else
-            return isoMsgPackager.pack(m, byteBuffer);
+             isoMsgPackager.pack(m, byteBuffer);
     }
 
     @Override
-    public int unpack(ISOMsg m, ByteBuffer byteBuffer) {
-        return isoMsgPackager.unpack(m, byteBuffer);
+    public void unpack(ISOMsg m, ByteBuffer byteBuffer) {
+         isoMsgPackager.unpack(m, byteBuffer);
     }
 
     @Override

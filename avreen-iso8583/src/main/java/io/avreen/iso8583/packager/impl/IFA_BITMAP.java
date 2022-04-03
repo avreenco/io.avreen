@@ -33,19 +33,18 @@ public class IFA_BITMAP extends ISOBitMapPackager {
     }
 
     @Override
-    public int pack(ISOBitMap c, ByteBuffer bytebuffer) {
+    public void pack(ISOBitMap c, ByteBuffer bytebuffer) {
         BitSet b = c.getValue();
         int len =
                 getLength() >= 8 ?
                         b.length() + 62 >> 6 << 3 : getLength();
         byte[] ab = CodecUtil.hexString(ISOUtil.bitSet2byte(b, len)).getBytes();
         bytebuffer.put(ab);
-        return ab.length;
 
     }
 
     @Override
-    public int unpack(ISOBitMap c, ByteBuffer byteBuffer) {
+    public void unpack(ISOBitMap c, ByteBuffer byteBuffer) {
         int len;
         BitSet bmap = ISOUtil.hex2BitSet(byteBuffer, getLength() << 3);
         c.setValue(bmap);
@@ -56,7 +55,6 @@ public class IFA_BITMAP extends ISOBitMapPackager {
         }
         int lenUnpack = Math.min(getLength() << 1, len >> 2);
         byteBuffer.position(byteBuffer.position() + lenUnpack);
-        return lenUnpack;
 
     }
 

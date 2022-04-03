@@ -33,17 +33,16 @@ public class IFHex_BITMAP extends ISOBitMapPackager {
     }
 
     @Override
-    public int pack(ISOBitMap c, ByteBuffer byteBuffer) {
+    public void pack(ISOBitMap c, ByteBuffer byteBuffer) {
         BitSet bmap = c.getValue();
         int len = getLength();
         byte[] b = ISOUtil.bitSet2byte(bmap, len);
         byte[] allBytes = CodecUtil.hexString(b).getBytes();
         byteBuffer.put(allBytes);
-        return allBytes.length;
     }
 
     @Override
-    public int unpack(ISOBitMap c, ByteBuffer byteBuffer) {
+    public void unpack(ISOBitMap c, ByteBuffer byteBuffer) {
         int len = getLength();
         byte[] bytes = new byte[len * 2];
         byteBuffer.get(bytes);
@@ -51,7 +50,6 @@ public class IFHex_BITMAP extends ISOBitMapPackager {
         int maxBits = len << 3;
         BitSet bmap = ISOUtil.byte2BitSet(ByteBuffer.wrap(hexBytes), maxBits);
         c.setValue(bmap);
-        return len * 2;
     }
 
 }

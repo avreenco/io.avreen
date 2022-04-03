@@ -1,36 +1,35 @@
 package io.avreen.iso8583.packager.impl;
 
 import io.avreen.common.util.CodecUtil;
-import io.avreen.iso8583.packager.impl.base.CharacterBaseInterpreter;
-import io.avreen.iso8583.util.ISOUtil;
+import io.avreen.iso8583.packager.impl.base.StringValueCodec;
 
 import java.nio.ByteBuffer;
 
 /**
  * The class Bcd interpreter.
  */
-public class BCDInterpreter implements CharacterBaseInterpreter {
+public class BCDValueCodec implements StringValueCodec {
     /**
      * The constant LEFT_PADDED.
      */
-    public static final BCDInterpreter LEFT_PADDED = new BCDInterpreter(true, false);
+    public static final BCDValueCodec LEFT_PADDED = new BCDValueCodec(true, false);
     /**
      * The constant RIGHT_PADDED.
      */
-    public static final BCDInterpreter RIGHT_PADDED = new BCDInterpreter(false, false);
+    public static final BCDValueCodec RIGHT_PADDED = new BCDValueCodec(false, false);
     /**
      * The constant RIGHT_PADDED_F.
      */
-    public static final BCDInterpreter RIGHT_PADDED_F = new BCDInterpreter(false, true);
+    public static final BCDValueCodec RIGHT_PADDED_F = new BCDValueCodec(false, true);
     /**
      * The constant LEFT_PADDED_F.
      */
-    public static final BCDInterpreter LEFT_PADDED_F = new BCDInterpreter(true, true);
+    public static final BCDValueCodec LEFT_PADDED_F = new BCDValueCodec(true, true);
 
     private boolean leftPadded;
     private boolean fPadded;
 
-    private BCDInterpreter(boolean leftPadded, boolean fPadded) {
+    private BCDValueCodec(boolean leftPadded, boolean fPadded) {
         this.leftPadded = leftPadded;
         this.fPadded = fPadded;
     }
@@ -44,7 +43,7 @@ public class BCDInterpreter implements CharacterBaseInterpreter {
     public byte[] interpret(String data) {
         int dataLength = 0;
 
-        dataLength = ((String) data).length();
+        dataLength = data.length();
         byte[] b = new byte[getPackedLength(dataLength)];
 
         CodecUtil.str2bcd((String) data, leftPadded, b, 0);
@@ -60,13 +59,12 @@ public class BCDInterpreter implements CharacterBaseInterpreter {
     }
 
 
-    public int interpret(String data, ByteBuffer byteBuffer) {
+    public void encodeValue(String data, ByteBuffer byteBuffer) {
         byte[] b = interpret(data);
         byteBuffer.put(b);
-        return b.length;
     }
 
-    public String uninterpret(ByteBuffer byteBuffer, int length) {
+    public String decodeValue(ByteBuffer byteBuffer, int length) {
         byte[] b = new byte[getPackedLength(length)];
         byteBuffer.get(b);
         return uninterpret(b, length);

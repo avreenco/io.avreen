@@ -7,16 +7,15 @@ import java.nio.ByteBuffer;
  *
  * @param <T> the type parameter
  */
-public interface Interpreter<T> {
+public interface IValueCodec<T> {
 
     /**
      * Interpret int.
      *
      * @param data the data
      * @param b    the b
-     * @return the int
      */
-    int interpret(T data, ByteBuffer b);
+    void encodeValue(T data, ByteBuffer b);
 
     /**
      * Uninterpret t.
@@ -25,14 +24,7 @@ public interface Interpreter<T> {
      * @param length the length
      * @return the t
      */
-    T uninterpret(ByteBuffer b, int length);
+    T decodeValue(ByteBuffer b, int length);
 
-    /**
-     * Gets packed length.
-     *
-     * @param nBytes the n bytes
-     * @return the packed length
-     */
-    int getPackedLength(int nBytes);
 
 }

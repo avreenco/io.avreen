@@ -4,17 +4,16 @@ package io.avreen.iso8583.packager.impl.base;
 import java.nio.ByteBuffer;
 
 /**
- * The interface Prefixer.
+ * The interface IValueLengthCodec.
  */
-public interface Prefixer {
+public interface IValueLengthCodec {
     /**
      * Encode length int.
      *
      * @param length     the length
      * @param byteBuffer the byte buffer
-     * @return the int
      */
-    int encodeLength(int length, ByteBuffer byteBuffer);
+    void encodeLength(int length, ByteBuffer byteBuffer);
 
     /**
      * Decode length int.
@@ -24,10 +23,4 @@ public interface Prefixer {
      */
     int decodeLength(ByteBuffer b);
 
-    /**
-     * Gets packed length.
-     *
-     * @return the packed length
-     */
-    int getPackedLength();
 }

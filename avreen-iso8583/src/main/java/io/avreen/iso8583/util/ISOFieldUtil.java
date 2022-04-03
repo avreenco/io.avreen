@@ -89,8 +89,8 @@ public class ISOFieldUtil {
      */
     public static byte[] packComposite(ISOComponentPackager[] fld, ISOMsg isoMsg) {
         ByteBuffer byteBuffer = ByteBuffer.allocate(9999);
-        int total = ISOMsgBasePackager.pack(fld, isoMsg, byteBuffer);
-        byte[] bytes = new byte[total];
+        ISOMsgBasePackager.pack(fld, isoMsg, byteBuffer);
+        byte[] bytes = new byte[byteBuffer.position()];
         byteBuffer.position(0);
         byteBuffer.get(bytes);
         return bytes;

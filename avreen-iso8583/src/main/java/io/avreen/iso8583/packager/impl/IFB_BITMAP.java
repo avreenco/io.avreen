@@ -31,19 +31,18 @@ public class IFB_BITMAP extends ISOBitMapPackager {
     }
 
     @Override
-    public int pack(ISOBitMap c, ByteBuffer byteBuffer) {
+    public void pack(ISOBitMap c, ByteBuffer byteBuffer) {
         BitSet b = c.getValue();
         int len =                                           // bytes needed to encode BitSet (in 8-byte chunks)
                 getLength() >= 8 ?
                         b.length() + 62 >> 6 << 3 : getLength();    // +62 because we don't use bit 0 in the BitSet
         byte[] ab = ISOUtil.bitSet2byte(b, len);
         byteBuffer.put(ab);
-        return ab.length;
 
     }
 
     @Override
-    public int unpack(ISOBitMap c, ByteBuffer byteBuffer) {
+    public void unpack(ISOBitMap c, ByteBuffer byteBuffer) {
         int len;
         BitSet bmap = ISOUtil.byte2BitSet(byteBuffer, getLength() << 3);
         c.setValue(bmap);
@@ -52,7 +51,6 @@ public class IFB_BITMAP extends ISOBitMapPackager {
             len = 192;
         int lenUnpack = Math.min(getLength(), len >> 3);
         byteBuffer.position(byteBuffer.position() + lenUnpack);
-        return lenUnpack;
 
     }
 }

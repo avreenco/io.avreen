@@ -1,42 +1,55 @@
 package io.avreen.iso8583.packager.impl;
 
-import io.avreen.iso8583.packager.impl.base.Prefixer;
+import io.avreen.iso8583.packager.impl.base.IValueLengthCodec;
 
 import java.nio.ByteBuffer;
 
 /**
- * The class Bcd prefixer.
+ * The class bcd value length codec
  */
-public class BCDPrefixer implements Prefixer {
+public class BCDValueLengthCodec implements IValueLengthCodec {
     /**
      * The constant L.
      */
-    public static final BCDPrefixer L = new BCDPrefixer(1);
+    public static final BCDValueLengthCodec L = new BCDValueLengthCodec(1);
     /**
      * The constant LL.
      */
-    public static final BCDPrefixer LL = new BCDPrefixer(2);
+    public static final BCDValueLengthCodec LL = new BCDValueLengthCodec(2);
     /**
      * The constant LLL.
      */
-    public static final BCDPrefixer LLL = new BCDPrefixer(3);
+    public static final BCDValueLengthCodec LLL = new BCDValueLengthCodec(3);
     /**
      * The constant LLLL.
      */
-    public static final BCDPrefixer LLLL = new BCDPrefixer(4);
+    public static final BCDValueLengthCodec LLLL = new BCDValueLengthCodec(4);
     private int nDigits;
 
     /**
-     * Instantiates a new Bcd prefixer.
+     * Instantiates a new Bcd ValueLengthCodec.
      *
      * @param nDigits the n digits
      */
-    public BCDPrefixer(int nDigits) {
+    private BCDValueLengthCodec(int nDigits) {
         this.nDigits = nDigits;
     }
 
+    public static BCDValueLengthCodec of(int nDigits)
+    {
+        if(nDigits == 1)
+            return BCDValueLengthCodec.L;
+        if(nDigits == 2)
+            return BCDValueLengthCodec.LL;
+        if(nDigits == 3)
+            return BCDValueLengthCodec.LLL;
+        if(nDigits == 4)
+            return BCDValueLengthCodec.LLLL;
+        return new BCDValueLengthCodec(nDigits);
+    }
+
     @Override
-    public int encodeLength(int length, ByteBuffer byteBuffer) {
+    public void encodeLength(int length, ByteBuffer byteBuffer) {
         int packetLength = getPackedLength();
         int pos = byteBuffer.position();
         for (int i = packetLength - 1; i >= 0; i--) {
@@ -45,7 +58,7 @@ public class BCDPrefixer implements Prefixer {
             byteBuffer.put(pos + i, (byte) ((twoDigits / 10 << 4) + twoDigits % 10));
         }
         byteBuffer.position(pos + packetLength);
-        return packetLength;
+        return ;
     }
 
     @Override
@@ -58,7 +71,7 @@ public class BCDPrefixer implements Prefixer {
         return len;
     }
 
-    @Override
+
     public int getPackedLength() {
         return nDigits + 1 >> 1;
     }

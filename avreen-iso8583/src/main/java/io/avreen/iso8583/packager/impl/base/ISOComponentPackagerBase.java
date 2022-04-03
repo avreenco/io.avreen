@@ -14,9 +14,9 @@ import java.nio.ByteBuffer;
 public abstract class ISOComponentPackagerBase<VT, C extends ISOComponent<VT>> implements ISOComponentPackager<C> {
     private int len;
     private String description;
-    private Interpreter<VT> interpreter;
+    private IValueCodec<VT> valueCodec;
     private Padder<VT> padder;
-    private Prefixer prefixer;
+    private IValueLengthCodec valueLengthCodec;
 
     /**
      * Instantiates a new Iso component packager base.
@@ -32,10 +32,10 @@ public abstract class ISOComponentPackagerBase<VT, C extends ISOComponent<VT>> i
     /**
      * Sets interpreter.
      *
-     * @param interpreter the interpreter
+     * @param valueCodec the interpreter
      */
-    public void setInterpreter(Interpreter<VT> interpreter) {
-        this.interpreter = interpreter;
+    public void setValueCodec(IValueCodec<VT> valueCodec) {
+        this.valueCodec = valueCodec;
     }
 
     /**
@@ -48,12 +48,12 @@ public abstract class ISOComponentPackagerBase<VT, C extends ISOComponent<VT>> i
     }
 
     /**
-     * Sets prefixer.
+     * Sets ValueLengthCodec.
      *
-     * @param prefixer the prefixer
+     * @param valueLengthCodec the ValueLengthCodec
      */
-    public void setPrefixer(Prefixer prefixer) {
-        this.prefixer = prefixer;
+    public void setValueLengthCodec(IValueLengthCodec valueLengthCodec) {
+        this.valueLengthCodec = valueLengthCodec;
     }
 
     /**
@@ -70,8 +70,8 @@ public abstract class ISOComponentPackagerBase<VT, C extends ISOComponent<VT>> i
      *
      * @return the interpreter
      */
-    public Interpreter<VT> getInterpreter() {
-        return interpreter;
+    public IValueCodec<VT> getValueCodec() {
+        return valueCodec;
     }
 
     /**
@@ -103,7 +103,7 @@ public abstract class ISOComponentPackagerBase<VT, C extends ISOComponent<VT>> i
 
 
     @Override
-    public int pack(C isoComponent, ByteBuffer byteBuffer) {
+    public void pack(C isoComponent, ByteBuffer byteBuffer) {
         VT data = isoComponent.getValue();
         if (getValueLength(data) > getLength()) {
             throw new RuntimeException("Field length " + getValueLength(data) + " too long. Max: " + getLength());
@@ -111,46 +111,24 @@ public abstract class ISOComponentPackagerBase<VT, C extends ISOComponent<VT>> i
         VT paddedData = data;
         if (padder != null)
             paddedData = padder.pad(data, getLength());
-        int packedLength = 0;
-        if (prefixer != null)
-            packedLength = prefixer.encodeLength(getValueLength(paddedData), byteBuffer);
-        int il = interpreter.interpret(paddedData, byteBuffer);
-        return il + packedLength;
-
+        if (valueLengthCodec != null)
+             valueLengthCodec.encodeLength(getValueLength(paddedData), byteBuffer);
+        valueCodec.encodeValue(paddedData, byteBuffer);
     }
 
 
     @Override
-    public int unpack(C isoComponent, ByteBuffer byteBuffer) {
+    public void unpack(C isoComponent, ByteBuffer byteBuffer) {
 
         int len = -1;
-        if (prefixer != null)
-            len = prefixer.decodeLength(byteBuffer);
+        if (valueLengthCodec != null)
+            len = valueLengthCodec.decodeLength(byteBuffer);
         if (len == -1) {
             len = getLength();
         } else if (getLength() > 0 && len > getLength())
             throw new RuntimeException("Field length " + len + " too long. Max: " + getLength());
-        int lenLen = 0;
-        if (prefixer != null)
-            lenLen = prefixer.getPackedLength();
-        isoComponent.setValue(interpreter.uninterpret(byteBuffer, len));
-        return lenLen + interpreter.getPackedLength(len);
-
+        isoComponent.setValue(valueCodec.decodeValue(byteBuffer, len));
     }
-
-    /**
-     * Check length.
-     *
-     * @param len       the len
-     * @param maxLength the max length
-     * @throws IllegalArgumentException the illegal argument exception
-     */
-    protected void checkLength(int len, int maxLength) throws IllegalArgumentException {
-        if (len > maxLength) {
-            throw new IllegalArgumentException("Length " + len + " too long for " + getClass().getName());
-        }
-    }
-
 
 }
 

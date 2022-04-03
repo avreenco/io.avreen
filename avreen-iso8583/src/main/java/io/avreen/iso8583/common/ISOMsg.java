@@ -10,10 +10,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
-import java.util.BitSet;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * The class Iso msg.
@@ -235,8 +232,11 @@ public class ISOMsg implements ISOComponent<ISOMsg>, ISOComponentDumper, IReject
             p.println(newIndent + "\"fields\":");
             p.println(newIndent + " [");
             int idx = 0;
-            int count = fieldMap.keySet().size();
-            for (Integer i : fieldMap.keySet()) {
+            Integer[]  allFields = new Integer[fieldMap.keySet().size()];
+            fieldMap.keySet().toArray(allFields);
+            Arrays.sort(allFields);
+            int count = allFields.length;
+            for (int i : allFields) {
                 ISOComponent c = fieldMap.get(i);
                 ISOComponentDumper iValueDumper = DumpUtil.getIsoComponentDumper(c);
                 iValueDumper.dump(i, c, p, newIndent + "   ");

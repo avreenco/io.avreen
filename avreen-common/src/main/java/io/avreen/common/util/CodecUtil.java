@@ -1,24 +1,28 @@
 package io.avreen.common.util;
 
-import java.math.BigInteger;
-
 /**
  * The class Codec util.
  */
 public class CodecUtil {
+    private static final char[] digits = "0123456789ABCDEF".toCharArray();
 
     /**
      * Hex 2 byte byte [ ].
      *
-     * @param s the s
+     * @param hexString the hexString
      * @return the byte [ ]
      */
-    public static byte[] hex2byte(String s) {
-        if (s.length() % 2 == 0) {
-            return new BigInteger(s, 16).toByteArray();
-        } else {
-            return new BigInteger("0" + s, 16).toByteArray();
+    public static byte[] hex2byte(String hexString) {
+        if ((hexString.length() % 2) != 0) {
+            throw new IllegalArgumentException("Input string must contain an even number of characters");
         }
+        final int len = hexString.length();
+        final byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(hexString.charAt(i), 16) << 4)
+                    + Character.digit(hexString.charAt(i + 1), 16));
+        }
+        return data;
     }
 
     public static byte[] str2hex(String s, boolean padLeft, byte[] d, int offset) {
@@ -28,6 +32,7 @@ public class CodecUtil {
             d[offset + (i >> 1)] |= Character.digit(s.charAt(i - start), 16) << ((i & 1) == 1 ? 0 : 4);
         return d;
     }
+
     public static String hex2str(byte[] b, int offset,
                                  int len, boolean padLeft) {
         StringBuilder d = new StringBuilder(len);
@@ -94,11 +99,16 @@ public class CodecUtil {
     /**
      * Hex string string.
      *
-     * @param b the b
+     * @param bytes the bytes
      * @return the string
      */
-    public static String hexString(byte[] b) {
-        return new BigInteger(b).toString(16);
+    public static String hexString(byte[] bytes) {
+        final StringBuilder buf = new StringBuilder();
+        for (int i = 0; i < bytes.length; i++) {
+            buf.append(digits[(bytes[i] >> 4) & 0x0f]);
+            buf.append(digits[bytes[i] & 0x0f]);
+        }
+        return buf.toString();
     }
 
     /**
@@ -112,7 +122,7 @@ public class CodecUtil {
     public static String padLeft(String s, int len, char c) {
         StringBuilder builder = new StringBuilder(s);
         while (builder.length() < len) {
-            builder.insert(0,c);
+            builder.insert(0, c);
         }
         return builder.toString();
     }

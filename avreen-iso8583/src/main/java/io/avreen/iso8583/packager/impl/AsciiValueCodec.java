@@ -2,7 +2,7 @@ package io.avreen.iso8583.packager.impl;
 
 
 import io.avreen.common.util.CharsetSetting;
-import io.avreen.iso8583.packager.impl.base.CharacterBaseInterpreter;
+import io.avreen.iso8583.packager.impl.base.StringValueCodec;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -10,17 +10,17 @@ import java.nio.charset.Charset;
 /**
  * The class Ascii interpreter.
  */
-public class AsciiInterpreter implements CharacterBaseInterpreter {
+public class AsciiValueCodec implements StringValueCodec {
     /**
      * The constant INSTANCE.
      */
-    public static final AsciiInterpreter INSTANCE = new AsciiInterpreter();
+    public static final AsciiValueCodec INSTANCE = new AsciiValueCodec();
     private Charset charset = null;
 
     /**
      * Instantiates a new Ascii interpreter.
      */
-    public AsciiInterpreter() {
+    public AsciiValueCodec() {
 
     }
 
@@ -29,17 +29,16 @@ public class AsciiInterpreter implements CharacterBaseInterpreter {
      *
      * @param charset the charset
      */
-    public AsciiInterpreter(Charset charset) {
+    public AsciiValueCodec(Charset charset) {
         this.charset = charset;
     }
 
 
     @Override
-    public int interpret(String data, ByteBuffer byteBuffer) {
+    public void encodeValue(String data, ByteBuffer byteBuffer) {
 
         byte[] stringBytes = (data).getBytes(charset == null ? CharsetSetting.DEFAULT : charset);
         byteBuffer.put(stringBytes);
-        return stringBytes.length;
 
 
     }
@@ -54,7 +53,7 @@ public class AsciiInterpreter implements CharacterBaseInterpreter {
     }
 
     @Override
-    public String uninterpret(ByteBuffer byteBuffer, int length) {
+    public String decodeValue(ByteBuffer byteBuffer, int length) {
         try {
             byte[] b = new byte[length];
             byteBuffer.get(b);
@@ -67,7 +66,7 @@ public class AsciiInterpreter implements CharacterBaseInterpreter {
         }
     }
 
-    @Override
+
     public int getPackedLength(int nDataUnits) {
         return nDataUnits;
     }

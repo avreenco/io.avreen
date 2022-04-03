@@ -2,9 +2,9 @@ package io.avreen.iso8583.packager.impl;
 
 import io.avreen.iso8583.common.ISOBinaryField;
 import io.avreen.iso8583.packager.impl.base.ISOComponentPackagerBase;
-import io.avreen.iso8583.packager.impl.base.Interpreter;
+import io.avreen.iso8583.packager.impl.base.IValueCodec;
 import io.avreen.iso8583.packager.impl.base.Padder;
-import io.avreen.iso8583.packager.impl.base.Prefixer;
+import io.avreen.iso8583.packager.impl.base.IValueLengthCodec;
 
 /**
  * The class Iso binary field packager.
@@ -17,14 +17,14 @@ public class ISOBinaryFieldPackager extends ISOComponentPackagerBase<byte[], ISO
      * @param description the description
      * @param padder      the padder
      * @param interpreter the interpreter
-     * @param prefixer    the prefixer
+     * @param valueLengthCodec    the valueLengthCodec
      */
     public ISOBinaryFieldPackager(int maxLength, String description, Padder<byte[]> padder,
-                                  Interpreter<byte[]> interpreter, Prefixer prefixer) {
+                                  IValueCodec<byte[]> interpreter, IValueLengthCodec valueLengthCodec) {
         super(maxLength, description);
         setPadder(padder);
-        setInterpreter(interpreter);
-        setPrefixer(prefixer);
+        setValueCodec(interpreter);
+        setValueLengthCodec(valueLengthCodec);
     }
 
     /**
@@ -33,13 +33,13 @@ public class ISOBinaryFieldPackager extends ISOComponentPackagerBase<byte[], ISO
      * @param maxLength   the max length
      * @param description the description
      * @param interpreter the interpreter
-     * @param prefixer    the prefixer
+     * @param valueLengthCodec    the valueLengthCodec
      */
     public ISOBinaryFieldPackager(int maxLength, String description,
-                                  Interpreter<byte[]> interpreter, Prefixer prefixer) {
+                                  IValueCodec<byte[]> interpreter, IValueLengthCodec valueLengthCodec) {
         super(maxLength, description);
-        setInterpreter(interpreter);
-        setPrefixer(prefixer);
+        setValueCodec(interpreter);
+        setValueLengthCodec(valueLengthCodec);
     }
 
     public ISOBinaryField createComponent() {
