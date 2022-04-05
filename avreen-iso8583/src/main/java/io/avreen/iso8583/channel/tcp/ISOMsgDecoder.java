@@ -14,9 +14,8 @@ import io.avreen.common.util.CodecUtil;
 import io.avreen.common.util.SystemPropUtil;
 import io.avreen.iso8583.common.IIsoRejectCodes;
 import io.avreen.iso8583.common.ISOMsg;
-import io.avreen.iso8583.packager.api.ISOMsgPackager;
+import io.avreen.iso8583.mapper.api.ISOMsgMapper;
 import io.avreen.iso8583.util.ISOFieldException;
-import io.avreen.iso8583.util.ISOUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.internal.logging.InternalLogger;
@@ -33,7 +32,7 @@ class ISOMsgDecoder {
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(LoggerDomain.Name + ".iso8583.channel.tcp.ISOMsgDecoder");
     private IMessageLenCodec messageLenCodec;
     private IMessageHeaderCodec messageHeaderCodec;
-    private ISOMsgPackager isoPackager;
+    private ISOMsgMapper isoMsgMapper;
     private static boolean debugBodyBuffer = SystemPropUtil.getBoolean("io.avreen.decoder.iso.debug.buffer.body", false);
 
 
@@ -42,10 +41,10 @@ class ISOMsgDecoder {
      *
      * @param messageLenCodec    the message len codec
      * @param messageHeaderCodec the message header codec
-     * @param isoPackager        the iso packager
+     * @param isoMsgMapper        the iso mapper
      */
-    public ISOMsgDecoder(IMessageLenCodec messageLenCodec, IMessageHeaderCodec messageHeaderCodec, ISOMsgPackager isoPackager) {
-        this.isoPackager = isoPackager;
+    public ISOMsgDecoder(IMessageLenCodec messageLenCodec, IMessageHeaderCodec messageHeaderCodec, ISOMsgMapper isoMsgMapper) {
+        this.isoMsgMapper = isoMsgMapper;
         this.messageLenCodec = messageLenCodec;
         this.messageHeaderCodec = messageHeaderCodec;
 
@@ -55,10 +54,10 @@ class ISOMsgDecoder {
      * Instantiates a new Iso msg decoder.
      *
      * @param messageLenCodec the message len codec
-     * @param isoPackager     the iso packager
+     * @param isoMsgMapper     the iso mapper
      */
-    public ISOMsgDecoder(IMessageLenCodec messageLenCodec, ISOMsgPackager isoPackager) {
-        this.isoPackager = isoPackager;
+    public ISOMsgDecoder(IMessageLenCodec messageLenCodec, ISOMsgMapper isoMsgMapper) {
+        this.isoMsgMapper = isoMsgMapper;
         this.messageLenCodec = messageLenCodec;
     }
 
@@ -109,8 +108,7 @@ class ISOMsgDecoder {
             } catch (Exception ex) {
                 if (logger.isErrorEnabled())
                     logger.error("invalid message len", ex);
-                ISOMsg rejectMsg = null;
-                rejectMsg = isoPackager.createComponent();
+                ISOMsg rejectMsg = new ISOMsg();
                 rejectMsg.setRejectCode(IIsoRejectCodes.InvalidMsgLen);
                 return new DecodeResult(DecodeStatus.DecodeLenException, rejectMsg);
             }
@@ -149,12 +147,14 @@ class ISOMsgDecoder {
                 byteBuffer.get(header);
 
             }
-            ISOMsg isoMsg = isoPackager.createComponent();
-            isoMsg.setHeader(header);
+            ISOMsg isoMsg = null;
+           // isoMsg.setHeader(header);
             boolean rejectMessage = false;
             if (header != null) {
                 if (messageHeaderCodec instanceof RejectCodeSupportCodec) {
                     if (((RejectCodeSupportCodec) messageHeaderCodec).isReject(header)) {
+                        isoMsg = new ISOMsg();
+                        isoMsg.setHeader(header);
                         isoMsg.setRejectCode(((RejectCodeSupportCodec) messageHeaderCodec).getRejectCode(header));
                         rejectMessage = true;
                     }
@@ -168,10 +168,13 @@ class ISOMsgDecoder {
                         logger.debug("decode body buffer={}", CodecUtil.hexString(getRawBodyBuffer(byteBuffer)));
                         byteBuffer.position(position);
                     }
-                    this.isoPackager.unpack(isoMsg, byteBuffer);
+                    isoMsg = this.isoMsgMapper.read(byteBuffer);
+                    isoMsg.setHeader(header);
                     if (needRawBuffer)
                         isoMsg.setRawBuffer(getRawBodyBuffer(byteBuffer));
                 } catch (Exception e) {
+                    isoMsg = new ISOMsg();
+                    isoMsg.setHeader(header);
                     if (logger.isErrorEnabled())
                         logger.error("unpack error len={} and exception={}", len, e);
                     if (e instanceof ISOFieldException)

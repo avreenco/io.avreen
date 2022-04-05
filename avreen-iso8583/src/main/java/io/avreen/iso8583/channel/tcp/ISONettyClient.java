@@ -86,8 +86,8 @@ public class ISONettyClient extends NettyClientBase<ISOMsg> implements ISONettyC
 
         if (isoTcpChannelProperties.getMessageLenCodec() == null)
             throw new RuntimeException("can not create client. lenHeaderCodec is null");
-        if (isoTcpChannelProperties.getIsoPackager() == null)
-            throw new RuntimeException("can not create client. iso packager is null");
+        if (isoTcpChannelProperties.getIsoMsgMapper() == null)
+            throw new RuntimeException("can not create client. iso mapper is null");
 
     }
 

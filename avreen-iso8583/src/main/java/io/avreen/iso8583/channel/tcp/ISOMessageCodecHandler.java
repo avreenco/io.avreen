@@ -35,7 +35,7 @@ public class ISOMessageCodecHandler extends MessageCodecHandlerBase<ISOMsg> {
 
     protected ISOMsg decodeMessage(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf) {
 
-        ISOMsgDecoder isoMessageDecoder = new ISOMsgDecoder(isoTcpChannelProperties.getMessageLenCodec(), isoTcpChannelProperties.getMessageHeaderCodec(), isoTcpChannelProperties.getIsoPackager());
+        ISOMsgDecoder isoMessageDecoder = new ISOMsgDecoder(isoTcpChannelProperties.getMessageLenCodec(), isoTcpChannelProperties.getMessageHeaderCodec(), isoTcpChannelProperties.getIsoMsgMapper());
         ISOMsgDecoder.DecodeResult decodeResult = isoMessageDecoder.decode(channelHandlerContext, byteBuf, isoTcpChannelProperties.isNeedRawBuffer(), isoTcpChannelProperties.isAllocateDirect());
         return decodeResult.getIsoMsg();
     }
@@ -55,7 +55,7 @@ public class ISOMessageCodecHandler extends MessageCodecHandlerBase<ISOMsg> {
      */
     protected void encodeISOMsg(ChannelHandlerContext channelHandlerContext, ISOMsg m, ByteBuf byteBuf) throws Exception {
 
-        ISOMsgEncoder messageEncoder = new ISOMsgEncoder(isoTcpChannelProperties.getMessageLenCodec(), isoTcpChannelProperties.getMessageHeaderCodec(), isoTcpChannelProperties.getIsoPackager());
+        ISOMsgEncoder messageEncoder = new ISOMsgEncoder(isoTcpChannelProperties.getMessageLenCodec(), isoTcpChannelProperties.getMessageHeaderCodec(), isoTcpChannelProperties.getIsoMsgMapper());
         messageEncoder.encode(m, channelHandlerContext, byteBuf, isoTcpChannelProperties.getMaxMessageSize(), isoTcpChannelProperties.isAllocateDirect());
     }
 

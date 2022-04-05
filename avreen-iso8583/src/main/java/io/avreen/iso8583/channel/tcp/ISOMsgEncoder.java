@@ -13,8 +13,7 @@ import io.avreen.common.log.LoggerDomain;
 import io.avreen.common.util.CodecUtil;
 import io.avreen.common.util.SystemPropUtil;
 import io.avreen.iso8583.common.ISOMsg;
-import io.avreen.iso8583.packager.api.ISOMsgPackager;
-import io.avreen.iso8583.util.ISOUtil;
+import io.avreen.iso8583.mapper.api.ISOMsgMapper;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.internal.logging.InternalLogger;
@@ -31,7 +30,7 @@ class ISOMsgEncoder {
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(LoggerDomain.Name + ".iso8583.channel.tcp.ISOMsgEncoder");
     private IMessageLenCodec messageLenCodec;
     private IMessageHeaderCodec messageHeaderCodec;
-    private ISOMsgPackager isoPackager;
+    private ISOMsgMapper isoMsgMapper;
     private static boolean debugBodyBuffer = SystemPropUtil.getBoolean("io.avreen.encoder.iso.debug.buffer.body", false);
 
     /**
@@ -39,10 +38,10 @@ class ISOMsgEncoder {
      *
      * @param messageLenCodec    the message len codec
      * @param messageHeaderCodec the message header codec
-     * @param isoPackager        the iso packager
+     * @param isoMsgMapper        the iso mapper
      */
-    public ISOMsgEncoder(IMessageLenCodec messageLenCodec, IMessageHeaderCodec messageHeaderCodec, ISOMsgPackager isoPackager) {
-        this.isoPackager = isoPackager;
+    public ISOMsgEncoder(IMessageLenCodec messageLenCodec, IMessageHeaderCodec messageHeaderCodec, ISOMsgMapper isoMsgMapper) {
+        this.isoMsgMapper = isoMsgMapper;
         this.messageLenCodec = messageLenCodec;
         this.messageHeaderCodec = messageHeaderCodec;
 
@@ -52,10 +51,10 @@ class ISOMsgEncoder {
      * Instantiates a new Iso msg encoder.
      *
      * @param messageLenCodec the message len codec
-     * @param isoPackager     the iso packager
+     * @param isoMsgMapper     the iso mapper
      */
-    public ISOMsgEncoder(IMessageLenCodec messageLenCodec, ISOMsgPackager isoPackager) {
-        this.isoPackager = isoPackager;
+    public ISOMsgEncoder(IMessageLenCodec messageLenCodec, ISOMsgMapper isoMsgMapper) {
+        this.isoMsgMapper = isoMsgMapper;
         this.messageLenCodec = messageLenCodec;
     }
 
@@ -102,7 +101,7 @@ class ISOMsgEncoder {
 
 
         int currentPosition = byteBuffer.position();
-        isoPackager.pack(m, byteBuffer);
+        isoMsgMapper.write(m, byteBuffer);
         int pkgLen = byteBuffer.position()-currentPosition;
         if (logger.isDebugEnabled())
             logger.debug("body total bytes={}", pkgLen);

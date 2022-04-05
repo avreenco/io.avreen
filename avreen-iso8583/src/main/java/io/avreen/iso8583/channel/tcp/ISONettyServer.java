@@ -74,8 +74,8 @@ public class ISONettyServer extends NettyServerBase<ISOMsg> implements ISONettyS
 
         if (isoTcpChannelProperties.getMessageLenCodec() == null)
             throw new RuntimeException("can not create server. lenHeaderCodec is null");
-        if (isoTcpChannelProperties.getIsoPackager() == null)
-            throw new RuntimeException("can not create server. iso packager is null");
+        if (isoTcpChannelProperties.getIsoMsgMapper() == null)
+            throw new RuntimeException("can not create server. iso mapper is null");
     }
 
 

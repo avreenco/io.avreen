@@ -3,8 +3,8 @@ package io.avreen.iso8583.util;
 
 import io.avreen.common.util.CodecUtil;
 import io.avreen.iso8583.common.ISOMsg;
-import io.avreen.iso8583.packager.api.ISOComponentPackager;
-import io.avreen.iso8583.packager.impl.base.ISOMsgBasePackager;
+import io.avreen.iso8583.mapper.api.ISOComponentMapper;
+import io.avreen.iso8583.mapper.impl.base.ISOMsgBaseMapper;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -73,10 +73,10 @@ public class ISOFieldUtil {
      * @param bytes the bytes
      * @return the iso msg
      */
-    public static ISOMsg unpackComposite(ISOComponentPackager[] fld, byte[] bytes) throws ISOFieldException {
+    public static ISOMsg unpackComposite(ISOComponentMapper[] fld, byte[] bytes) throws ISOFieldException {
         ISOMsg isoMsg = new ISOMsg();
         ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
-        ISOMsgBasePackager.unpack(fld, isoMsg, byteBuffer);
+        ISOMsgBaseMapper.read(fld, isoMsg, byteBuffer);
         return isoMsg;
     }
 
@@ -87,9 +87,9 @@ public class ISOFieldUtil {
      * @param isoMsg the iso msg
      * @return the byte [ ]
      */
-    public static byte[] packComposite(ISOComponentPackager[] fld, ISOMsg isoMsg) {
+    public static byte[] packComposite(ISOComponentMapper[] fld, ISOMsg isoMsg) {
         ByteBuffer byteBuffer = ByteBuffer.allocate(9999);
-        ISOMsgBasePackager.pack(fld, isoMsg, byteBuffer);
+        ISOMsgBaseMapper.write(fld, isoMsg, byteBuffer);
         byte[] bytes = new byte[byteBuffer.position()];
         byteBuffer.position(0);
         byteBuffer.get(bytes);

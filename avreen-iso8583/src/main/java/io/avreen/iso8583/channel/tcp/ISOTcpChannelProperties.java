@@ -4,8 +4,8 @@ import io.avreen.common.codec.tcp.ASCIIMessageLenCodec;
 import io.avreen.common.codec.tcp.IMessageHeaderCodec;
 import io.avreen.common.codec.tcp.IMessageLenCodec;
 import io.avreen.common.util.SimpleToStringUtil;
-import io.avreen.iso8583.packager.api.ISOMsgPackager;
-import io.avreen.iso8583.packager.impl.ISO87APackager;
+import io.avreen.iso8583.mapper.api.ISOMsgMapper;
+import io.avreen.iso8583.mapper.impl.ISO87AMapper;
 
 /**
  * The class Iso tcp channel properties.
@@ -13,7 +13,7 @@ import io.avreen.iso8583.packager.impl.ISO87APackager;
 public class ISOTcpChannelProperties {
     private IMessageLenCodec messageLenCodec;
     private IMessageHeaderCodec messageHeaderCodec;
-    private ISOMsgPackager isoPackager;
+    private ISOMsgMapper isoMsgMapper;
     private int maxMessageSize = 9999;
     private boolean allocateDirect = false;
     private boolean needRawBuffer = false;
@@ -25,15 +25,9 @@ public class ISOTcpChannelProperties {
 
     }
 
-    /**
-     * Instantiates a new Iso tcp channel properties.
-     *
-     * @param messageLenCodec the message len codec
-     * @param isoPackager     the iso packager
-     */
-    public ISOTcpChannelProperties(IMessageLenCodec messageLenCodec, ISOMsgPackager isoPackager) {
+    public ISOTcpChannelProperties(IMessageLenCodec messageLenCodec, ISOMsgMapper isoMsgMapper) {
         this.messageLenCodec = messageLenCodec;
-        this.isoPackager = isoPackager;
+        this.isoMsgMapper = isoMsgMapper;
     }
 
     /**
@@ -41,12 +35,12 @@ public class ISOTcpChannelProperties {
      *
      * @param messageLenCodec    the message len codec
      * @param messageHeaderCodec the message header codec
-     * @param isoPackager        the iso packager
+     * @param isoMsgMapper        the iso mapper
      */
-    public ISOTcpChannelProperties(IMessageLenCodec messageLenCodec, IMessageHeaderCodec messageHeaderCodec, ISOMsgPackager isoPackager) {
+    public ISOTcpChannelProperties(IMessageLenCodec messageLenCodec, IMessageHeaderCodec messageHeaderCodec, ISOMsgMapper isoMsgMapper) {
         this.messageLenCodec = messageLenCodec;
         this.messageHeaderCodec = messageHeaderCodec;
-        this.isoPackager = isoPackager;
+        this.isoMsgMapper = isoMsgMapper;
     }
 
     @Override
@@ -95,22 +89,22 @@ public class ISOTcpChannelProperties {
     }
 
     /**
-     * Gets iso packager.
+     * Gets iso mapper.
      *
-     * @return the iso packager
+     * @return the iso mapper
      */
-    public ISOMsgPackager getIsoPackager() {
-        return isoPackager;
+    public ISOMsgMapper getIsoMsgMapper() {
+        return isoMsgMapper;
     }
 
     /**
-     * Sets iso packager.
+     * Sets iso mapper.
      *
-     * @param isoPackager the iso packager
-     * @return the iso packager
+     * @param isoMsgMapper the iso mapper
+     * @return the iso mapper
      */
-    public ISOTcpChannelProperties setIsoPackager(ISOMsgPackager isoPackager) {
-        this.isoPackager = isoPackager;
+    public ISOTcpChannelProperties setIsoMsgMapper(ISOMsgMapper isoMsgMapper) {
+        this.isoMsgMapper = isoMsgMapper;
         return this;
     }
 
@@ -184,8 +178,8 @@ public class ISOTcpChannelProperties {
             return;
         if (channelProperties.getMessageLenCodec() == null)
             channelProperties.setMessageLenCodec(new ASCIIMessageLenCodec(4, 9999));
-        if (channelProperties.getIsoPackager() == null)
-            channelProperties.setIsoPackager(new ISO87APackager());
+        if (channelProperties.getIsoMsgMapper() == null)
+            channelProperties.setIsoMsgMapper(new ISO87AMapper());
     }
 
 }

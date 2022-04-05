@@ -6,7 +6,7 @@ import io.avreen.examples.core.iso8583.common.MessageCreator;
 import io.avreen.iso8583.channel.tcp.ISONettyClient;
 import io.avreen.iso8583.channel.tcp.ISONettyClientBuilder;
 import io.avreen.iso8583.common.ISOMsg;
-import io.avreen.iso8583.packager.impl.ISO87APackager;
+import io.avreen.iso8583.mapper.impl.ISO87AMapper;
 
 
 /**
@@ -29,7 +29,7 @@ public class client_async_example0 {
         ISONettyClient isoNettyClient =
                 new ISONettyClientBuilder()
                         .messageLenCodec(new ASCIIMessageLenCodec())
-                        .isoPackager(new ISO87APackager())
+                        .isoMapper(new ISO87AMapper())
                         .host("localhost")
                         .processor((channelHandlerContext, msg) -> msg.getMsg().dump(System.out, ""))
                         .port(port).build();

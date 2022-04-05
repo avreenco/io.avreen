@@ -1,7 +1,7 @@
 # io.avreen
 message base framework iso8583 , ...
 this librarry is simple messaging base on netty and support iso8583 message format and http
-iso8583 packager base 
+iso8583 mapper base 
 include
   channel abstraction ( send & receive )
   message context
@@ -12,7 +12,7 @@ include
     import io.avreen.common.codec.tcp.ASCIIMessageLenCodec;
     import io.avreen.examples.core.iso8583.common.SampleRequestISOMsgProcessor;
     import io.avreen.iso8583.channel.tcp.ISONettyServerBuilder;
-    import io.avreen.iso8583.packager.impl.ISO87APackager;
+    import io.avreen.iso8583.mapper.impl.ISO87AMapper;
     import java.time.Duration;
     
     new ISONettyServerBuilder()
@@ -33,7 +33,7 @@ include
     import io.avreen.iso8583.channel.tcp.ISONettyClient;
     import io.avreen.iso8583.channel.tcp.ISONettyClientBuilder;
     import io.avreen.iso8583.common.ISOMsg;
-    import io.avreen.iso8583.packager.impl.ISO87APackager;
+    import io.avreen.iso8583.mapper.impl.ISO87AMapper;
     import io.netty.channel.Channel;
     
      ISOMsg isoMsg  =new ISOMsg()

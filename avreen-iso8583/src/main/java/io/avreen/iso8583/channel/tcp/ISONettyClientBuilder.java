@@ -4,7 +4,7 @@ import io.avreen.common.codec.tcp.IMessageHeaderCodec;
 import io.avreen.common.codec.tcp.IMessageLenCodec;
 import io.avreen.common.netty.client.NettyClientBaseBuilder;
 import io.avreen.iso8583.common.ISOMsg;
-import io.avreen.iso8583.packager.api.ISOMsgPackager;
+import io.avreen.iso8583.mapper.api.ISOMsgMapper;
 
 /**
  * The class Iso netty client builder.
@@ -53,14 +53,8 @@ public class ISONettyClientBuilder extends NettyClientBaseBuilder<ISONettyClient
         return this;
     }
 
-    /**
-     * Iso packager iso netty client builder.
-     *
-     * @param isoPackager the iso packager
-     * @return the iso netty client builder
-     */
-    public ISONettyClientBuilder isoPackager(ISOMsgPackager isoPackager) {
-        this.channelProperties.setIsoPackager(isoPackager);
+    public ISONettyClientBuilder isoMapper(ISOMsgMapper isoMsgMapper) {
+        this.channelProperties.setIsoMsgMapper(isoMsgMapper);
         return this;
     }
 
