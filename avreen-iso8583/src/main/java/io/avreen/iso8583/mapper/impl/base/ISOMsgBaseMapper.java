@@ -26,7 +26,7 @@ public abstract class ISOMsgBaseMapper implements ISOMsgMapper {
     /**
      * The Fld.
      */
-    protected ISOComponentMapper[] fld;
+    protected ISOComponentMapper[] fieldsMapper;
     /**
      * The Iso component dumper map.
      */
@@ -35,21 +35,21 @@ public abstract class ISOMsgBaseMapper implements ISOMsgMapper {
     /**
      * Emit bit map boolean.
      *
-     * @param fld the fld
+     * @param fieldsMapper the fld
      * @return the boolean
      */
-    static boolean hasBitMapField(ISOComponentMapper[] fld) {
-        return getBitMapfieldIndex(fld) >= 0;
+    static boolean hasBitMapField(ISOComponentMapper[] fieldsMapper) {
+        return getBitMapfieldIndex(fieldsMapper) >= 0;
     }
 
     /**
      * Gets first field.
      *
-     * @param fld the fld
+     * @param fieldsMapper the fld
      * @return the first field
      */
-    static int getFirstField(ISOComponentMapper[] fld) {
-        int bitmapIndex = getBitMapfieldIndex(fld);
+    static int getFirstField(ISOComponentMapper[] fieldsMapper) {
+        int bitmapIndex = getBitMapfieldIndex(fieldsMapper);
         if (bitmapIndex < 0)
             return 1;
         return bitmapIndex + 1;
@@ -58,31 +58,31 @@ public abstract class ISOMsgBaseMapper implements ISOMsgMapper {
     /**
      * Pack int.
      *
-     * @param fld        the fld
+     * @param fieldsMapper        the fld
      * @param m          the m
      * @param byteBuffer the byte buffer
      * @return the int
      */
-    public static void write(ISOComponentMapper[] fld, ISOMsg m, ByteBuffer byteBuffer) {
+    public static void write(ISOComponentMapper[] fieldsMapper, ISOMsg m, ByteBuffer byteBuffer) {
         try {
             ISOComponent c = m.getIsoComponent(0);
-            int first = getFirstField(fld);
-            if (first > 0 && c != null && !(fld[0] instanceof ISOBitMapMapper)) {
-                fld[0].write(c, byteBuffer);
+            int first = getFirstField(fieldsMapper);
+            if (first > 0 && c != null && !(fieldsMapper[0] instanceof ISOBitMapMapper)) {
+                fieldsMapper[0].write(c, byteBuffer);
             }
             BitSet bmap3 = null;
-            if (hasBitMapField(fld)) {
-                c = m.getIsoComponent(getBitMapfieldIndex(fld));
-                getBitMapfieldMapper(fld).write(c, byteBuffer);
+            if (hasBitMapField(fieldsMapper)) {
+                c = m.getIsoComponent(getBitMapfieldIndex(fieldsMapper));
+                getBitMapfieldMapper(fieldsMapper).write(c, byteBuffer);
             }
-            int tmpMaxField = Math.min(m.calcMaxField(), (bmap3 != null || fld.length > 129) ? 192 : 128);
+            int tmpMaxField = Math.min(m.calcMaxField(), (bmap3 != null || fieldsMapper.length > 129) ? 192 : 128);
             for (int i = first; i <= tmpMaxField; i++) {
                 if ((c = m.getIsoComponent(i)) != null) {
                     try {
-                        ISOComponentMapper fp = fld[i];
-                        if (fp == null)
+                        ISOComponentMapper componentMapper = fieldsMapper[i];
+                        if (componentMapper == null)
                             throw new RuntimeException("null field " + i + "mapper");
-                        fp.write(c, byteBuffer);
+                        componentMapper.write(c, byteBuffer);
                     } catch (Exception e) {
                         if (logger.isErrorEnabled())
                             logger.error("error packing field ={} and component={} ", i, c);
@@ -114,13 +114,13 @@ public abstract class ISOMsgBaseMapper implements ISOMsgMapper {
     /**
      * Gets bit mapfield index.
      *
-     * @param fld the fld
+     * @param fieldsMapper the fieldsMapper
      * @return the bit mapfield index
      */
-    static int getBitMapfieldIndex(ISOComponentMapper[] fld) {
-        if (fld[0] instanceof ISOBitMapMapper)
+    static int getBitMapfieldIndex(ISOComponentMapper[] fieldsMapper) {
+        if (fieldsMapper[0] instanceof ISOBitMapMapper)
             return 0;
-        if (fld[1] instanceof ISOBitMapMapper)
+        if (fieldsMapper[1] instanceof ISOBitMapMapper)
             return 1;
         return -1;
     }
@@ -128,63 +128,63 @@ public abstract class ISOMsgBaseMapper implements ISOMsgMapper {
     /**
      * Unpack int.
      *
-     * @param fld                   the fld
+     * @param fieldsMapper                   the fieldsMapper
      * @param isoComponentDumperMap the iso component dumper map
      * @param m                     the m
      * @param byteBuffer            the byte buffer
      * @return the int
      */
-    public static void read(ISOComponentMapper[] fld, Map<Integer, ISOComponentDumper> isoComponentDumperMap, ISOMsg m, ByteBuffer byteBuffer) throws ISOFieldException {
-        readInternal(fld, isoComponentDumperMap, m, byteBuffer);
+    public static void read(ISOComponentMapper[] fieldsMapper, Map<Integer, ISOComponentDumper> isoComponentDumperMap, ISOMsg m, ByteBuffer byteBuffer) throws ISOFieldException {
+        readInternal(fieldsMapper, isoComponentDumperMap, m, byteBuffer);
 
     }
 
     /**
      * Unpack int.
      *
-     * @param fld        the fld
+     * @param fieldsMapper        the fieldsMapper
      * @param m          the m
      * @param byteBuffer the byte buffer
      * @return the int
      */
-    public static void read(ISOComponentMapper[] fld, ISOMsg m, ByteBuffer byteBuffer) throws ISOFieldException {
-        readInternal(fld, null, m, byteBuffer);
+    public static void read(ISOComponentMapper[] fieldsMapper, ISOMsg m, ByteBuffer byteBuffer) throws ISOFieldException {
+        readInternal(fieldsMapper, null, m, byteBuffer);
     }
 
     /**
      * Unpack int.
      *
-     * @param fld                   the fld
+     * @param fieldsMapper                   the fieldsMapper
      * @param isoComponentDumperMap the iso component dumper map
      * @param m                     the m
      * @param byteBuffer            the byte buffer
      * @return the int
      */
-    private static void readInternal(ISOComponentMapper[] fld, Map<Integer, ISOComponentDumper> isoComponentDumperMap, ISOMsg m, ByteBuffer byteBuffer) throws ISOFieldException {
+    private static void readInternal(ISOComponentMapper[] fieldsMapper, Map<Integer, ISOComponentDumper> isoComponentDumperMap, ISOMsg m, ByteBuffer byteBuffer) throws ISOFieldException {
         if (logger.isDebugEnabled())
             logger.debug("unpack");
-        if (!(fld[0] == null) && !(fld[0] instanceof ISOBitMapMapper)) {
-            ISOComponent<String> mti = fld[0].read(byteBuffer);
+        if (!(fieldsMapper[0] == null) && !(fieldsMapper[0] instanceof ISOBitMapMapper)) {
+            ISOComponent<String> mti = fieldsMapper[0].read(byteBuffer);
             m.set(0, mti);
         }
         BitSet bmap = null;
-        int maxField = fld.length - 1;
-        if (hasBitMapField(fld)) {
-            ISOBitMap bitmap = (ISOBitMap) getBitMapfieldMapper(fld).read(byteBuffer);
+        int maxField = fieldsMapper.length - 1;
+        if (hasBitMapField(fieldsMapper)) {
+            ISOBitMap bitmap = (ISOBitMap) getBitMapfieldMapper(fieldsMapper).read(byteBuffer);
             bmap = bitmap.getValue();
             if (logger.isDebugEnabled())
                 logger.debug("bitmap={}", bmap.toString());
-            m.set(getBitMapfieldIndex(fld), bitmap);
+            m.set(getBitMapfieldIndex(fieldsMapper), bitmap);
             maxField = Math.min(maxField, bmap.length() - 1);
         }
-        for (int i = getFirstField(fld); i <= maxField; i++) {
+        for (int i = getFirstField(fieldsMapper); i <= maxField; i++) {
             try {
-                if (bmap == null && fld[i] == null)
+                if (bmap == null && fieldsMapper[i] == null)
                     continue;
                 if (bmap == null || bmap.get(i)) {
-                    if (fld[i] == null)
+                    if (fieldsMapper[i] == null)
                         throw new RuntimeException("field mapper '" + i + "' is null");
-                    ISOComponent c = fld[i].read(byteBuffer);
+                    ISOComponent c = fieldsMapper[i].read(byteBuffer);
                     if (c instanceof ISOComponentDumperAware) {
                         if (isoComponentDumperMap != null) {
                             if (isoComponentDumperMap.containsKey(i))
@@ -216,10 +216,10 @@ public abstract class ISOMsgBaseMapper implements ISOMsgMapper {
     /**
      * Sets field mapper.
      *
-     * @param fld the fld
+     * @param fieldsMapper the fieldsMapper
      */
-    public void setFieldsMapper(ISOComponentMapper[] fld) {
-        this.fld = fld;
+    public void setFieldsMapper(ISOComponentMapper[] fieldsMapper) {
+        this.fieldsMapper = fieldsMapper;
     }
 
     /**
@@ -248,13 +248,13 @@ public abstract class ISOMsgBaseMapper implements ISOMsgMapper {
 
     @Override
     public void write(ISOMsg m, ByteBuffer byteBuffer) throws ISOFieldException {
-        ISOMsgBaseMapper.write(fld, m, byteBuffer);
+        ISOMsgBaseMapper.write(fieldsMapper, m, byteBuffer);
     }
 
     @Override
     public ISOMsg read(ByteBuffer byteBuffer) throws ISOFieldException {
         ISOMsg m = new ISOMsg();
-        readInternal(fld, isoComponentDumperMap, m, byteBuffer);
+        readInternal(fieldsMapper, isoComponentDumperMap, m, byteBuffer);
         return m;
     }
 
