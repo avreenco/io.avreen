@@ -40,7 +40,7 @@ public class IFA_BITMAP extends ISOBitMapMapper {
         BitSet bmap = ISOUtil.hex2BitSet(byteBuffer, getLength() << 3);
         ISOBitMap c = createComponent();
         c.setValue(bmap);
-        len = bmap.get(1) ? 128 : 64; /* changed by Hani */
+        len = bmap.get(1) ? 128 : 64;
         if (getLength() > 16 && bmap.get(65)) {
             len = 192;
             bmap.clear(65);

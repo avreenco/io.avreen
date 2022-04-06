@@ -25,9 +25,9 @@ public class IFB_BITMAP extends ISOBitMapMapper {
     @Override
     public void write(ISOBitMap c, ByteBuffer byteBuffer) {
         BitSet b = c.getValue();
-        int len =                                           // bytes needed to encode BitSet (in 8-byte chunks)
+        int len =
                 getLength() >= 8 ?
-                        b.length() + 62 >> 6 << 3 : getLength();    // +62 because we don't use bit 0 in the BitSet
+                        b.length() + 62 >> 6 << 3 : getLength();
         byte[] ab = ISOUtil.bitSet2byte(b, len);
         byteBuffer.put(ab);
 

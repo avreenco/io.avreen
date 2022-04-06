@@ -14,7 +14,7 @@ public class ISO87AMapper extends ISOMsgBaseMapper {
     /**
      * The Fld.
      */
-    protected ISOComponentMapper fld[] = {
+    protected ISOComponentMapper fieldsMapper[] = {
             /*000*/ IFA.NUM(4, "MESSAGE TYPE INDICATOR"),
             /*001*/ IFA.BITMAP(16, "BIT MAP"),
             /*002*/ IFA.VARNUM(19, "PAN - PRIMARY ACCOUNT NUMBER"),
@@ -151,7 +151,7 @@ public class ISO87AMapper extends ISOMsgBaseMapper {
      */
     public ISO87AMapper() {
         super();
-        setFieldsMapper(fld);
+        setFieldsMapper(fieldsMapper);
     }
 
     @Override
