@@ -168,17 +168,13 @@ public class ISO87AMapper extends ISOMsgBaseMapper {
         byte[] bytes = CodecUtil.hex2byte("303830303832333830303030383030313038303030343030303030313030303030303030303933303036353635383030303030313130323635383039333030393530323830363030303031382020453341424635384646394634463946463030333030303030303130333030313631303235383536313131443339383737304343");
 
         ISO87AMapper iso87AMapper = new ISO87AMapper();
-        ISOMsg isoMsg = new ISOMsg();
-        iso87AMapper.read(ByteBuffer.wrap(bytes));
-
+        ISOMsg isoMsg = iso87AMapper.read(ByteBuffer.wrap(bytes));
         System.out.println(isoMsg);
-
         {
             ByteBuffer byteBuffer = ByteBuffer.allocate(9999);
             iso87AMapper.write(isoMsg, byteBuffer);
-
-            byte[] bb = new byte[byteBuffer.position()];
-            byteBuffer.position(0);
+            byteBuffer.flip();
+            byte[] bb = new byte[byteBuffer.limit()];
             byteBuffer.get(bb);
             System.out.println(CodecUtil.hexString(bb));
 

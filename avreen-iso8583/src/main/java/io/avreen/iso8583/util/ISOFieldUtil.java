@@ -87,7 +87,7 @@ public class ISOFieldUtil {
      * @param isoMsg the iso msg
      * @return the byte [ ]
      */
-    public static byte[] packComposite(ISOComponentMapper[] fld, ISOMsg isoMsg) {
+    public static byte[] mapIsoMsg(ISOComponentMapper[] fld, ISOMsg isoMsg) {
         ByteBuffer byteBuffer = ByteBuffer.allocate(9999);
         ISOMsgBaseMapper.write(fld, isoMsg, byteBuffer);
         byte[] bytes = new byte[byteBuffer.position()];

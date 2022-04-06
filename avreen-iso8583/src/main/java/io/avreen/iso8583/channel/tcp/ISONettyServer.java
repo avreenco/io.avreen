@@ -9,7 +9,7 @@ import io.netty.handler.codec.ByteToMessageCodec;
 /**
  * The class Iso netty server.
  */
-public class ISONettyServer extends NettyServerBase<ISOMsg> implements ISONettyServerMXBean, ITcpISOChannel {
+public class ISONettyServer extends NettyServerBase<ISOMsg> implements ISONettyServerMXBean {
 
     private ISOTcpChannelProperties isoTcpChannelProperties;
 
@@ -115,9 +115,5 @@ public class ISONettyServer extends NettyServerBase<ISOMsg> implements ISONettyS
         return "iso-server";
     }
 
-    @Override
-    public ISOTcpChannelProperties getProperties() {
-        return isoTcpChannelProperties;
-    }
 }
 
