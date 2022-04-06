@@ -37,12 +37,6 @@
             <groupId>io.netty</groupId>
             <artifactId>netty-transport-native-kqueue</artifactId>
         </dependency>
-        <dependency>
-            <groupId>io.netty.incubator</groupId>
-            <artifactId>netty-incubator-transport-native-io_uring</artifactId>
-            <version>${netty-incubator-transport-native-io_uring.version}</version>
-            <classifier>linux-x86_64</classifier>
-        </dependency>            <!-- ************************************************** -->
     </dependencies>
 
 </project>

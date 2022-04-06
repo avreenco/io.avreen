@@ -10,9 +10,6 @@ import io.netty.channel.kqueue.KQueueSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.incubator.channel.uring.IOUringEventLoopGroup;
-import io.netty.incubator.channel.uring.IOUringServerSocketChannel;
-import io.netty.incubator.channel.uring.IOUringSocketChannel;
 
 /**
  * The class Channel config util.
@@ -33,8 +30,6 @@ public class ChannelConfigUtil {
             return new EpollEventLoopGroup(nThreads);
         if (TransportTypes.kqueue.equals(transportTypes))
             return new KQueueEventLoopGroup(nThreads);
-        if (TransportTypes.io_uring.equals(transportTypes))
-            return new IOUringEventLoopGroup(nThreads);
         throw new RuntimeException("can not create event loop group with channel type" + transportTypes);
     }
 
@@ -51,8 +46,6 @@ public class ChannelConfigUtil {
             return EpollServerSocketChannel.class;
         if (TransportTypes.kqueue.equals(transportTypes))
             return KQueueServerSocketChannel.class;
-        if (TransportTypes.io_uring.equals(transportTypes))
-            return IOUringServerSocketChannel.class;
         throw new RuntimeException("can not get server socket channel with channel type" + transportTypes);
     }
 
@@ -69,8 +62,6 @@ public class ChannelConfigUtil {
             return EpollSocketChannel.class;
         if (TransportTypes.kqueue.equals(transportTypes))
             return KQueueSocketChannel.class;
-        if (TransportTypes.io_uring.equals(transportTypes))
-            return IOUringSocketChannel.class;
         throw new RuntimeException("can not get socket channel with channel type" + transportTypes);
     }
 

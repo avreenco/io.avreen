@@ -16,8 +16,4 @@ public enum TransportTypes {
      * Kqueue transport types.
      */
     kqueue,
-    /**
-     * Io uring transport types.
-     */
-    io_uring;
 }
