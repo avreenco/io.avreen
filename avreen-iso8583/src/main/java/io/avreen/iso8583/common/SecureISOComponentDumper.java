@@ -15,7 +15,7 @@ public class SecureISOComponentDumper implements ISOComponentDumper {
     /**
      * Instantiates a new Secure iso component dumper.
      */
-    protected SecureISOComponentDumper() {
+    public SecureISOComponentDumper() {
 
     }
 
@@ -24,7 +24,7 @@ public class SecureISOComponentDumper implements ISOComponentDumper {
      *
      * @return the secure iso component dumper
      */
-    public static SecureISOComponentDumper INSTANCE() {
+    public static SecureISOComponentDumper DEFAULT() {
         return instance;
     }
 

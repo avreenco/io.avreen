@@ -7,21 +7,20 @@
         <groupId>io</groupId>
         <version>2.0-SNAPSHOT</version>
     </parent>
-
     <modelVersion>4.0.0</modelVersion>
+
     <groupId>io.avreen</groupId>
-    <artifactId>avreen-example-core</artifactId>
+    <artifactId>avreen-mq-api</artifactId>
     <dependencies>
-        <dependency>
-            <groupId>io.avreen</groupId>
-            <artifactId>avreen-iso8583</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.avreen</groupId>
-            <artifactId>avreen-iso8583-json-logger</artifactId>
-        </dependency>
 
+        <dependency>
+            <groupId>io.avreen</groupId>
+            <artifactId>avreen-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.avreen</groupId>
+            <artifactId>avreen-serializer</artifactId>
+        </dependency>
     </dependencies>
-
 
 </project>

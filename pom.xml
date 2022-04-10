@@ -14,6 +14,11 @@
         <module>avreen-iso8583-json-logger</module>
         <module>avreen-hb</module>
         <module>avreen-example-core</module>
+        <module>avreen-mq-api</module>
+        <module>avreen-serializer</module>
+        <module>avreen-redis-common</module>
+        <module>avreen-mq-redis</module>
+        <module>avreen-mq-test</module>
 
     </modules>
 
@@ -25,6 +30,32 @@
                 <artifactId>avreen-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>io.avreen</groupId>
+                <artifactId>avreen-mq-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.avreen</groupId>
+                <artifactId>avreen-serializer</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.avreen</groupId>
+                <artifactId>avreen-redis-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.avreen</groupId>
+                <artifactId>avreen-mq-redis</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.avreen</groupId>
+                <artifactId>avreen-mq-test</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>io.avreen</groupId>
                 <artifactId>avreen-hb</artifactId>
@@ -84,7 +115,9 @@
         <netty.version>4.1.75.Final</netty.version>
         <java.version>1.8</java.version>
         <slf4j.version>1.7.32</slf4j.version>
+        <kryo-version>5.1.1</kryo-version>
         <jackson.version.databind>2.12.4</jackson.version.databind>
+        <lettuce.version>6.1.8.RELEASE</lettuce.version>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>
     </properties>
