@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean id="channelAdaptor1"
+          class="org.avreen.security.module.impl.hsm.safenet.org.openswitch.iso8583.channel.SafeNetNettyChannelAdaptor">
+        <property name="name" value="SFN_CHA"></property>
+        <property name="host" value="192.168.249.10"></property>
+        <property name="port" value="5551"></property>
+        <property name="spaceURI" value="SFN.SPACE"></property>
+        <property name="enableServerMode" value="false"></property>
+        <property name="enableSSL" value="false"></property>
+    </bean>
+
+    <bean id="SHP_MUX"
+          class="org.avreen.security.module.impl.hsm.safenet.org.openswitch.iso8583.channel.DefaultSafeNetMUX">
+        <property name="name" value="SFN"></property>
+        <property name="spaceURI" value="SFN.SPACE"></property>
+    </bean>
+
+
+</beans>

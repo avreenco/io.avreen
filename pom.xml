@@ -21,6 +21,8 @@
         <module>avreen-redis-common</module>
         <module>avreen-mq-redis</module>
         <module>avreen-mq-test</module>
+        <module>avreen-security-api</module>
+        <module>avreen-security-hsm-safenet</module>
 
     </modules>
 
@@ -55,6 +57,16 @@
             <dependency>
                 <groupId>io.avreen</groupId>
                 <artifactId>avreen-mq-test</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.avreen</groupId>
+                <artifactId>avreen-security-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.avreen</groupId>
+                <artifactId>avreen-security-hsm-safenet</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
