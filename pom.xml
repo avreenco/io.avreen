@@ -12,7 +12,7 @@
         <module>avreen-common</module>
         <module>avreen-iso8583</module>
         <module>avreen-http</module>
-        <module>avreen-http-logger</module>
+        <module>avreen-http-json-logger</module>
         <module>avreen-iso8583-json-logger</module>
         <module>avreen-hb</module>
         <module>avreen-example-core</module>
@@ -76,7 +76,7 @@
             </dependency>
             <dependency>
                 <groupId>io.avreen</groupId>
-                <artifactId>avreen-http-logger</artifactId>
+                <artifactId>avreen-http-json-logger</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
