@@ -99,7 +99,7 @@ public abstract class RemoteMsgPublisherAbstract<M> extends MsgPublisherAbstract
     protected abstract void publishBytes(String queueName, MsgContext<M>[] msgContext, byte[][] bytes);
 
     @Override
-    public void publishMsg(String queueName, MsgContext<M> msgContext) {
+    public void pushMsg(String queueName, MsgContext<M> msgContext) {
         if (getState() != STARTED) {
             if (LOGGER.isErrorEnabled())
                 LOGGER.error("publisher not stared");

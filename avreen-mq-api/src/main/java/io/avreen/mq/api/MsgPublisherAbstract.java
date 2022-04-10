@@ -24,7 +24,7 @@ public abstract class MsgPublisherAbstract<M> extends ActorBase implements IMsgP
 
 
     @Override
-    public void publish(String queueName, MsgContext<M> msgContext) {
+    public void push(String queueName, MsgContext<M> msgContext) {
         if (!isRunning()) {
             if (LOGGER.isErrorEnabled())
                 LOGGER.error("publish msg failed because publisher is not started message-broker={}", getName());
@@ -37,7 +37,7 @@ public abstract class MsgPublisherAbstract<M> extends ActorBase implements IMsgP
         AtomicLong atomicLong_tx = StatisticUtil.getCounter(queueName, queue_tx);
         AtomicLong atomicLong_tx_pending = StatisticUtil.getCounter(queueName, queue_tx_pending);
         atomicLong_tx_pending.incrementAndGet();
-        publishMsg(queueName, msgContext);
+        pushMsg(queueName, msgContext);
         tx_pending.decrementAndGet();
         atomicLong_tx_pending.decrementAndGet();
         tx.incrementAndGet();
@@ -50,7 +50,7 @@ public abstract class MsgPublisherAbstract<M> extends ActorBase implements IMsgP
      * @param queueName  the queue name
      * @param msgContext the msg context
      */
-    public abstract void publishMsg(String queueName, MsgContext<M> msgContext);
+    public abstract void pushMsg(String queueName, MsgContext<M> msgContext);
 
 
     @Override

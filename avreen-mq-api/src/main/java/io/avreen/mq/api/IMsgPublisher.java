@@ -14,6 +14,6 @@ public interface IMsgPublisher<M> {
      * @param queueName  the queue name
      * @param msgContext the msg context
      */
-    void publish(String queueName, MsgContext<M> msgContext);
+    void push(String queueName, MsgContext<M> msgContext);
 
 }

@@ -69,7 +69,7 @@ class LocalQPublisher<M> extends MsgPublisherAbstract<M> implements LocalQPublis
     }
 
     @Override
-    public void publishMsg(String queueName, MsgContext<M> msgContext) {
+    public void pushMsg(String queueName, MsgContext<M> msgContext) {
         try {
             boolean offered = space.offer(queueName, msgContext, offerTimeout.getSeconds(), TimeUnit.SECONDS);
             if (!offered)

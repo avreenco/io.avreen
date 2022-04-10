@@ -32,7 +32,7 @@ public class TestPublisher implements Runnable {
         for (; ; ) {
             try {
                 MsgContext<byte[]> msgContext = new MsgContext<>("test", test_body);
-                publisher.publish(qname, msgContext);
+                publisher.push(qname, msgContext);
                 tps.tick();
                 Thread.yield();
             } catch (Exception e) {
