@@ -4,6 +4,7 @@ import io.avreen.common.context.MsgContext;
 import io.avreen.common.netty.client.ConnectionModel;
 import io.avreen.common.netty.client.NettyASyncClient;
 import io.avreen.common.netty.client.NettyClientBase;
+import io.avreen.common.netty.client.NettyOnDemandASyncClient;
 import io.avreen.http.common.HttpMsg;
 
 import java.util.concurrent.CompletableFuture;
@@ -14,7 +15,7 @@ import java.util.concurrent.TimeoutException;
 /**
  * The type Http async client.
  */
-public class HttpClientTemplate extends NettyASyncClient<HttpMsg> {
+public class HttpClientTemplate extends NettyOnDemandASyncClient<HttpMsg> {
     /**
      * Instantiates a new Http async client.
      *
@@ -27,7 +28,6 @@ public class HttpClientTemplate extends NettyASyncClient<HttpMsg> {
 
     @Override
     public synchronized void start() {
-        setConnectionModel(ConnectionModel.OnDemand);
         setResponseListener(this::onReceive);
         super.start();
     }

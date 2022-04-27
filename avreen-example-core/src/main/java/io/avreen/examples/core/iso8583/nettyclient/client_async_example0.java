@@ -2,6 +2,7 @@ package io.avreen.examples.core.iso8583.nettyclient;
 
 import io.avreen.common.codec.tcp.ASCIIMessageLenCodec;
 import io.avreen.common.netty.client.NettyASyncClient;
+import io.avreen.common.netty.client.NettyPermanentASyncClient;
 import io.avreen.examples.core.iso8583.common.MessageCreator;
 import io.avreen.iso8583.channel.tcp.ISONettyClient;
 import io.avreen.iso8583.channel.tcp.ISONettyClientBuilder;
@@ -45,7 +46,7 @@ public class client_async_example0 {
     public static void sendMessageSync() throws Exception {
         ISONettyClient isoNettyClient1 = buildIsoNettyClient(6011);
         ISONettyClient isoNettyClient2 = buildIsoNettyClient(6012);
-        NettyASyncClient<ISOMsg> nettySyncClient = new NettyASyncClient<>(isoNettyClient1, isoNettyClient2);
+        NettyPermanentASyncClient<ISOMsg> nettySyncClient = new NettyPermanentASyncClient<>(isoNettyClient1, isoNettyClient2);
         nettySyncClient.start();
         while (!nettySyncClient.isConnected()) {
             System.out.println("channel not connected");

@@ -1,13 +1,11 @@
 package io.avreen.common.netty.client;
 
 import io.avreen.common.cache.ICacheManager;
-import io.avreen.common.cache.SimpleCacheManager;
 import io.avreen.common.context.*;
 import io.avreen.common.log.LoggerDomain;
 import io.avreen.common.mux.IMUXResponseListener;
 import io.avreen.common.mux.MultiplexerAsyncRequest;
 import io.avreen.common.netty.*;
-import io.avreen.common.util.ChannelGroupUtil;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.AttributeKey;
@@ -15,8 +13,9 @@ import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 
 import java.net.SocketAddress;
-import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * The class Netty a sync client.
@@ -24,22 +23,17 @@ import java.util.*;
  * @param <M> the type parameter
  */
 //@ManagedResource
-public class NettyASyncClient<M> implements IMsgProcessor<M>,
+public abstract class NettyASyncClient<M> implements IMsgProcessor<M>,
         IReadTimeOutEvent,
         ISessionEventListener {
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(LoggerDomain.Name + ".common.netty.client.NettyASyncClient");
 
     protected List<NettyClientBase<M>> nettyClients = new ArrayList<>();
-    private Duration reconnectDelay = Duration.ofSeconds(10);
-    private Timer reconnectTimer;
     private boolean started = false;
-    private IChannelGroupRepository applyChannelGroupRepository = null;
-    private ConnectionModel connectionModel = ConnectionModel.Permanent;
-    private ICacheManager cacheManager;
+    protected IChannelGroupRepository applyChannelGroupRepository = null;
+    protected ICacheManager cacheManager;
     protected IMUXResponseListener<M> responseListener;
-    private long cacheTimeout = 0;
-    private IMsgProcessor clientMsgProcessor;
-
+    protected IMsgProcessor clientMsgProcessor=null;
 
     /**
      * Instantiates a new Netty a sync client.
@@ -113,27 +107,10 @@ public class NettyASyncClient<M> implements IMsgProcessor<M>,
         return last;
     }
 
-    /**
-     * Is null channel groups boolean.
-     *
-     * @return the boolean
-     */
-    public boolean isNullChannelGroups() {
-        boolean isNull = true;
-        for (NettyClientBase nettyClientBase : nettyClients) {
-            isNull = isNull & (nettyClientBase.getChannelGroupRepository() == null);
-        }
-        return true;
-    }
+    protected void beforeStartClient(NettyClientBase nettyClientBase)
+    {}
 
-    /**
-     * Sets reconnect delay.
-     *
-     * @param reconnectDelay the reconnect delay
-     */
-    public void setReconnectDelay(Duration reconnectDelay) {
-        this.reconnectDelay = reconnectDelay;
-    }
+    protected void beforeStart(){}
 
 
     /**
@@ -142,82 +119,26 @@ public class NettyASyncClient<M> implements IMsgProcessor<M>,
     public synchronized void start() {
         if (started)
             return;
-
         applyChannelGroupRepository = checkDifferentClientsChannelGroups();
-
         if (applyChannelGroupRepository == null)
             applyChannelGroupRepository = new ChannelGroupRepository();
         for (NettyClientBase nettyClientBase : nettyClients) {
             nettyClientBase.setChannelGroupRepository(applyChannelGroupRepository);
-            if (connectionModel.equals(ConnectionModel.OnDemand))
-                nettyClientBase.setCloseWhenReadComplete(true);
+            beforeStartClient(nettyClientBase);
             nettyClientBase.start();
         }
-        if (connectionModel.equals(ConnectionModel.OnDemand)) {
-            if (cacheManager == null) {
-                synchronized (this) {
-                    if (cacheManager == null)
-                        cacheManager = new SimpleCacheManager();
-                }
-            }
-
-            for (NettyClientBase nettyClientBase : nettyClients) {
-
-                if (nettyClientBase.getReadTimeout() != null) {
-                    long channelReadTimeout = nettyClientBase.getReadTimeout()
-                            .toMillis();
-                    if (channelReadTimeout > cacheTimeout)
-                        cacheTimeout = channelReadTimeout;
-                }
-
-                { /* add my to processor list */
-                    IMsgProcessor<M> msgProcessor = null;
-                    if (nettyClientBase.getMsgProcessor() != null)
-                        clientMsgProcessor = nettyClientBase.getMsgProcessor();
-                    nettyClientBase.setMsgProcessor(this);
-                }
-
-                { /* add my to event lister list */
-                    ISessionEventListener sessionEventListener;
-                    if (nettyClientBase.getSessionEventListener() != null) {
-                        List<ISessionEventListener> eventListeners = new ArrayList<>();
-                        eventListeners.add(this);
-                        eventListeners.add(nettyClientBase.getSessionEventListener());
-                        CompositeSessionEventListener compositeSessionEventListener = new CompositeSessionEventListener(eventListeners);
-                        sessionEventListener = compositeSessionEventListener;
-                    } else {
-                        sessionEventListener = this;
-                    }
-                    nettyClientBase.setSessionEventListener(sessionEventListener);
-                }
-                nettyClientBase.setReadTimeOutEvent(this);
-            }
-            if (cacheTimeout == 0)
-                cacheTimeout = 60000;
-            else
-                cacheTimeout += 5000;
-        }
-
-        if (reconnectTimer == null && connectionModel.equals(ConnectionModel.Permanent)) {
-
-            reconnectTimer = new Timer(true);
-            reconnectTimer.scheduleAtFixedRate(new TimerTask() {
-                                                   @Override
-                                                   public void run() {
-                                                       checkConnection();
-                                                   }
-                                               },
-                    0,
-                    reconnectDelay.toMillis());
-        }
-
+        beforeStart();
         started = true;
     }
+
     protected Throwable causeException(Throwable e) {
         if (e.getCause() == null)
             return e;
         return causeException(e.getCause());
     }
+
+    protected abstract Channel doSend(MsgContext<M> msgContext,
+                                      Object handback);
 
     /**
      * Send channel.
@@ -230,51 +151,7 @@ public class NettyASyncClient<M> implements IMsgProcessor<M>,
                         Object handback) {
         if (!started)
             start();
-        if (connectionModel.equals(ConnectionModel.OnDemand)) {
-            try {
-                Channel channel = connectFirst();
-                if (!channel.isOpen() || !channel.isWritable() || !channel.isActive()) {
-                    if (logger.isWarnEnabled())
-                        logger.warn("channel is not active for write ={} message={}",
-                                channel,
-                                msgContext);
-                    processReject(null, msgContext, handback, ISystemRejectCodes.DestinationNotReady, -1, "channel is not active");
-                    return null;
-                }
-                if (logger.isInfoEnabled())
-                    logger.info("sending message to to channel={}",
-                            channel);
-                if (logger.isDebugEnabled())
-                    logger.debug("sending message ={}",
-                            msgContext);
-                String req = channel.id()
-                        .toString();
-
-                cacheManager.put(req,
-                        new MultiplexerAsyncRequest<M>(msgContext,
-                                handback, System.currentTimeMillis()),
-                        cacheTimeout);
-                Object sendMsg = msgContext.getMsg();
-                if (sendMsg instanceof IMsgContextAware)
-                    ((IMsgContextAware) sendMsg).setMsgContext(msgContext);
-
-                channel.writeAndFlush(sendMsg);
-                return channel;
-            } catch (Exception e) {
-                if (logger.isErrorEnabled())
-                    logger.error("send error",
-                            e);
-
-                    processReject(null, msgContext, handback, ISystemRejectCodes.DestinationNotReady, -1, causeException(e).getMessage());
-                return null;
-            }
-        } else {
-            Object sendMsg = msgContext.getMsg();
-            if (sendMsg instanceof IMsgContextAware)
-                ((IMsgContextAware) sendMsg).setMsgContext(msgContext);
-            return ChannelGroupUtil.writeAndFlush(applyChannelGroupRepository,
-                    sendMsg);
-        }
+        return doSend(msgContext , handback);
     }
 
     /**
@@ -305,13 +182,6 @@ public class NettyASyncClient<M> implements IMsgProcessor<M>,
                 handBack);
     }
 
-    private synchronized void checkConnection() {
-
-        for (NettyClientBase nettyClientBase : nettyClients) {
-            nettyClientBase.checkConnection();
-        }
-    }
-
     /**
      * Sets response listener.
      *
@@ -322,34 +192,6 @@ public class NettyASyncClient<M> implements IMsgProcessor<M>,
     }
 
 
-    private Channel connectFirst() {
-        Exception lastException=null;
-        for (NettyClientBase nettyClientBase : nettyClients) {
-            try {
-                Channel channel = nettyClientBase.connect();
-                if (channel != null)
-                    return channel;
-            } catch (Exception e) {
-                if (logger.isWarnEnabled())
-                    logger.warn("connect failed.",
-                            e);
-                lastException = e;
-            }
-        }
-        if (lastException != null)
-            throw new RuntimeException("not client found for connect", lastException);
-        else
-            throw new RuntimeException("not client found for connect");
-    }
-
-    /**
-     * Sets connection model.
-     *
-     * @param connectionModel the connection model
-     */
-    public void setConnectionModel(ConnectionModel connectionModel) {
-        this.connectionModel = connectionModel;
-    }
 
     @Override
     public void readTimedOut(ChannelHandlerContext ctx) {
